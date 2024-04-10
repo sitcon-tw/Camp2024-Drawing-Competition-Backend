@@ -11,32 +11,49 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from dotenv import load_dotenv, find_dotenv
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+load_dotenv(find_dotenv())
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-gew4s&q4%&7$^^6jz@3^&+3yj3bct0t1qcrw(zjhxl=7^f0poh'
+SECRET_KEY = os.environ.get("SECRET_KEY", "123456")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
-
+DEBUG = os.environ.get("DEBUG", True)
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+]
+# CORS Settings
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_HEADERS = "*"
+CORS_ORIGIN_ALLOW_METHODS = "*"
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
 
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    # Dependencies
+    "rest_framework",
+    "corsheaders",
+    "drf_yasg",
+    # App
+    "api",
 ]
 
 MIDDLEWARE = [
@@ -70,15 +87,22 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'equipment_backend.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
     }
+    # "default": {
+    #     "ENGINE": "django.db.backends.postgresql",
+    #     "NAME": os.environ.get("POSTGRES_DB", "equipment"),
+    #     "TEST": {"NAME": os.environ.get("POSTGRES_TEST_DB", "test")},
+    #     "USER": os.environ.get("POSTGRES_USER", "test"),
+    #     "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "123456"),
+    #     "HOST": os.environ.get("POSTGRES_DB_URL", "127.0.0.1"),
+    #     "PORT": os.environ.get("POSTGRES_DB_PORT", "5432"),
+    # },
 }
 
 
@@ -104,19 +128,22 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
+LANGUAGE_CODE = "zh-Hant"
+TIME_ZONE = "Asia/Taipei"
 USE_I18N = True
-
+USE_L10N = True
 USE_TZ = True
+DEFAULT_CHARSET = "utf-8"  # 'latin-1'
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+# Actual directory user files go to
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_URL = "/media/"
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
