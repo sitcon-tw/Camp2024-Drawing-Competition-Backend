@@ -20,38 +20,48 @@ class OrderViewSet(viewsets.GenericViewSet):
 
     @swagger_auto_schema(request_body=CreateOrderSerializer)
     def add(self, request, *args, **kwargs):
-        serializer = CreateOrderSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        # Part
-        part_id_list = serializer.validated_data["part_id_list"]
-        part_number_list = serializer.validated_data["part_number_list"]
-        for id, num in zip(part_id_list, part_number_list):
-            part = Part.objects.get(id=id)
-            if part.number < num:
-                return Response(
-                    {"error": "Not enough part"}, status=status.HTTP_400_BAD_REQUEST
+        try:
+            serializer = CreateOrderSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            # Part
+            part_id_list = serializer.validated_data["part_id_list"]
+            part_number_list = serializer.validated_data["part_number_list"]
+            for id, num in zip(part_id_list, part_number_list):
+                part = Part.objects.get(id=id)
+                if part.number < num:
+                    return Response(
+                        {"error": "Not enough part"}, status=status.HTTP_400_BAD_REQUEST
+                    )
+                else:
+                    part.number -= num
+                    part.save()
+            # Create Order Detail
+            for id, num in zip(part_id_list, part_number_list):
+                order_detail = OrderDetail.objects.create(
+                    number=num,
+                    part_id=Part.objects.get(id=id),
+                    order_number=serializer.validated_data["order_number"],
                 )
-            else:
-                part.number -= num
-                part.save()
-        # Create Order Detail
-        for id, num in zip(part_id_list, part_number_list):
-            order_detail = OrderDetail.objects.create(
-                number=num,
-                part_id=Part.objects.get(id=id),
+                order_detail.save()
+            # Create Order
+            order = Order.objects.create(
                 order_number=serializer.validated_data["order_number"],
+                description=serializer.validated_data["description"],
+                status=serializer.validated_data["status"],
+                expected_date=serializer.validated_data["expected_date"],
+                user_id=User.objects.get(
+                    username=serializer.validated_data["username"]
+                ),
             )
-            order_detail.save()
-        # Create Order
-        order = Order.objects.create(
-            order_number=serializer.validated_data["order_number"],
-            description=serializer.validated_data["description"],
-            status=serializer.validated_data["status"],
-            expected_date=serializer.validated_data["expected_date"],
-            user_id=User.objects.get(username=serializer.validated_data["username"]),
-        )
-        order.save()
-        return Response({"message": "Order created"}, status=status.HTTP_201_CREATED)
+            order.save()
+            return Response(
+                {"message": "Order created"}, status=status.HTTP_201_CREATED
+            )
+        except Exception as E:
+            print(E)
+            return Response(
+                {"message": "Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class OrderOperateViewSet(generics.RetrieveUpdateDestroyAPIView):
