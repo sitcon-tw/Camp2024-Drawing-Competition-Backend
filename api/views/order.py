@@ -6,7 +6,11 @@ from django.contrib.auth.models import User
 from api.model.order import Order
 from api.model.part import Part
 from api.model.order_detail import OrderDetail
-from api.serializers.order import OrderSerializer, CreateOrderSerializer
+from api.serializers.order import (
+    OrderSerializer,
+    CreateOrderSerializer,
+    OrderSerializerWithUser,
+)
 from drf_yasg.utils import swagger_auto_schema
 
 
@@ -15,7 +19,7 @@ class OrderViewSet(viewsets.GenericViewSet):
     serializer_class = OrderSerializer
 
     def find_all(self, request, *args, **kwargs):
-        serializer = OrderSerializer(Order.objects.all(), many=True)
+        serializer = OrderSerializerWithUser(Order.objects.all(), many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(request_body=CreateOrderSerializer)
@@ -72,5 +76,5 @@ class OrderOperateViewSet(generics.RetrieveUpdateDestroyAPIView):
 class OrderScheduleViewSet(APIView):
     def get(self, request):
         order = Order.objects.all().filter(status="待處理").order_by("expected_date")
-        serializer = OrderSerializer(order, many=True)
+        serializer = OrderSerializerWithUser(order, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

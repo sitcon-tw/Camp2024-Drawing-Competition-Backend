@@ -4,11 +4,20 @@ from rest_framework import serializers
 
 from api.serializers.user import OAuthRegisterSerializer
 
-class OrderSerializer(serializers.ModelSerializer):
+
+class OrderSerializerWithUser(serializers.ModelSerializer):
     user_id = OAuthRegisterSerializer()
+
+    class Meta:
+        model = Order
+        fields = "__all__"
+
+
+class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = '__all__'
+
 
 class CreateOrderSerializer(serializers.Serializer):
     order_number = serializers.CharField()
