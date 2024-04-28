@@ -1,10 +1,11 @@
 from api.model.order import Order
-from api.model.part import Part
-from api.model.order_detail import OrderDetail
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
+from api.serializers.user import OAuthRegisterSerializer
+
 class OrderSerializer(serializers.ModelSerializer):
+    user_id = OAuthRegisterSerializer()
     class Meta:
         model = Order
         fields = '__all__'
