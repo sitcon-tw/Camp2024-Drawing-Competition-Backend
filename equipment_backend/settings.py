@@ -27,10 +27,10 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "123456")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", True)
 ALLOWED_HOSTS = [
-    "127.0.0.1",
-    "localhost",
+    "*",
 ]
 # CORS Settings
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_HEADERS = "*"
 CORS_ORIGIN_ALLOW_METHODS = "*"
