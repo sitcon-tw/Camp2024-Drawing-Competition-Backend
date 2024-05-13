@@ -1,4 +1,4 @@
-# Equipment Backend
+# Drawing Competition Backend
 
 ---
 
@@ -9,7 +9,7 @@
 
 ---
 
-## Getting Start
+## Getting Start - API Server
 
 ### Init Env
 
@@ -27,4 +27,21 @@ python manage.py migrate
 
 ```shell
 python manage.py runserver
+```
+
+---
+
+## Getting Start MQTT Publisher
+
+### Init Env
+
+```shell
+poetry shell # In Project root
+python manage.py migrate django_celery_beat
+```
+
+### Run Publisher
+
+```shell
+celery -A backend worker --loglevel=info
 ```

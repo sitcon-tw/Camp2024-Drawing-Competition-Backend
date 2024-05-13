@@ -10,3 +10,8 @@
 ### Database
 
 db.sqlite3
+
+### Media
+
+media/generate/**
+media/images/**

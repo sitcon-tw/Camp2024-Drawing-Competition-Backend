@@ -15,6 +15,10 @@ django-cors-headers = "^4.3.1"
 setuptools = "^69.2.0"
 requests = "^2.31.0"
 psycopg = {extras = ["binary"], version = "^3.1.18"}
+paho-mqtt = "^2.1.0"
+django-celery-beat = "^2.6.0"
+django-seed = "^0.3.1"
+pillow = "^10.3.0"
 
 
 [build-system]

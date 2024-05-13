@@ -1,16 +1,20 @@
 from django.urls import path
+from api.views.round import RoundAPIView, RoundListCreateAPIView
 from api.views.user import (
     Register,
     LogoutAPI,
     EditProfileAPI,
     UserAPIView,
-    OAuthUserRegisterAPI,
-    OAuthUserLoginAPI,
     LoginView,
 )
-from api.views.order import OrderViewSet, OrderOperateViewSet, OrderScheduleViewSet
-from api.views.part import PartListCreateViewSet, PartRetrieveUpdateDestroyViewSet
-
+from api.views.team import TeamAPIView, TeamTokenAPIView
+from api.views.submission import SubmissionAPIView, SubmissionTeamAPIView
+from api.views.challenge import (
+    ChallengeAPIView,
+    ChallengeRUDAPIView,
+    ChallengeTeamAPIView,
+)
+from api.views.statistic import TeamChallengeScoreStaticAPIView
 
 urlpatterns = [
     # Account Routes
@@ -21,33 +25,35 @@ urlpatterns = [
         "account/profile/edit/", EditProfileAPI.as_view(), name="account-profile-edit"
     ),
     path("account/user/all/", UserAPIView.as_view(), name="account-list"),
-    # OAuth Routes
+    # Teams Routes
+    path("team/", TeamAPIView.as_view(), name="team"),
+    path("team/<str:token>/", TeamTokenAPIView.as_view(), name="team-token"),
+    # Submission Routes
+    path("submission/", SubmissionAPIView.as_view(), name="submission"),
     path(
-        "account/oauth/register/",
-        OAuthUserRegisterAPI.as_view(),
-        name="account-oauth-register",
+        "submission/<int:team_id>/",
+        SubmissionTeamAPIView.as_view(),
+        name="submission-team",
+    ),
+    # Challenge Routes
+    path("challenge/", ChallengeAPIView.as_view(), name="challenge"),
+    path(
+        "challenge/<int:challenge_id>/",
+        ChallengeRUDAPIView.as_view(),
+        name="challenge-operate",
     ),
     path(
-        "account/oauth/login/", OAuthUserLoginAPI.as_view(), name="account-oauth-login"
+        "challenge/<int:challenge_id>/team/<int:team_id>/",
+        ChallengeTeamAPIView.as_view(),
+        name="challenge-submission-team",
     ),
-    # Order Routes
+    # Round Routes
+    path("round/", RoundListCreateAPIView.as_view(), name="round"),
+    path("round/<int:pk>/", RoundAPIView.as_view(), name="round-detail"),
+    # Statistic Routes
     path(
-        "order/",
-        OrderViewSet.as_view(
-            {
-                "get": "find_all",
-                "post": "add",
-            }
-        ),
-        name="order-create-list",
-    ),
-    path("order/schedule/", OrderScheduleViewSet.as_view(), name="order-schedule"),
-    path("order/<int:pk>/", OrderOperateViewSet.as_view(), name="order-get-put-delete"),
-    # Part Routes
-    path("part/", PartListCreateViewSet.as_view(), name="part-create-list"),
-    path(
-        "part/<int:pk>/",
-        PartRetrieveUpdateDestroyViewSet.as_view(),
-        name="part-get-put-delete",
+        "statistic/team/",
+        TeamChallengeScoreStaticAPIView.as_view(),
+        name="statistic-team",
     ),
 ]
