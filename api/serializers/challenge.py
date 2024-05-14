@@ -7,3 +7,11 @@ class ChallengeGeneralSerializer(serializers.ModelSerializer):
         model = Challenge
         fields = "__all__"
         read_only_fields = ("id",)
+
+
+class ChallengeTeamSubmissionSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    status = serializers.CharField()
+    description = serializers.CharField()
+    round_id = serializers.IntegerField()
+    is_valid = serializers.BooleanField()

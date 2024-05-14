@@ -13,6 +13,7 @@ from api.views.challenge import (
     ChallengeAPIView,
     ChallengeRUDAPIView,
     ChallengeTeamAPIView,
+    ChallengeTeamListAPIView,
 )
 from api.views.statistic import TeamChallengeScoreStaticAPIView
 
@@ -47,6 +48,7 @@ urlpatterns = [
         ChallengeTeamAPIView.as_view(),
         name="challenge-submission-team",
     ),
+    path("challenge/team/", ChallengeTeamListAPIView.as_view(), name="challenge-team"),
     # Round Routes
     path("round/", RoundListCreateAPIView.as_view(), name="round"),
     path("round/<int:pk>/", RoundAPIView.as_view(), name="round-detail"),
