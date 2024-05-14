@@ -8,11 +8,15 @@ from api.views.user import (
     LoginView,
 )
 from api.views.team import TeamAPIView, TeamTokenAPIView
-from api.views.submission import SubmissionAPIView, SubmissionTeamAPIView
+from api.views.submission import (
+    SubmissionAPIView,
+    SubmissionChallengeTeamAPIView,
+    SubmissionChallengeTeamMaxAPIView,
+    SubmissionTeamAPIView,
+)
 from api.views.challenge import (
     ChallengeAPIView,
     ChallengeRUDAPIView,
-    ChallengeTeamAPIView,
     ChallengeTeamListAPIView,
 )
 from api.views.statistic import TeamChallengeScoreStaticAPIView
@@ -36,17 +40,22 @@ urlpatterns = [
         SubmissionTeamAPIView.as_view(),
         name="submission-team",
     ),
+    path(
+        "submission/challenge/<int:challenge_id>/team/<int:team_id>/",
+        SubmissionChallengeTeamAPIView.as_view(),
+        name="submission-challenge-team",
+    ),
+    path(
+        "submission/max/challenge/<int:challenge_id>/team/<int:team_id>/",
+        SubmissionChallengeTeamMaxAPIView.as_view(),
+        name="max-submission-challenge-team",
+    ),
     # Challenge Routes
     path("challenge/", ChallengeAPIView.as_view(), name="challenge"),
     path(
         "challenge/<int:challenge_id>/",
         ChallengeRUDAPIView.as_view(),
         name="challenge-operate",
-    ),
-    path(
-        "challenge/<int:challenge_id>/team/<int:team_id>/",
-        ChallengeTeamAPIView.as_view(),
-        name="challenge-submission-team",
     ),
     path("challenge/team/", ChallengeTeamListAPIView.as_view(), name="challenge-team"),
     # Round Routes

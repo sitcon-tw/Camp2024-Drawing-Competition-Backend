@@ -109,30 +109,6 @@ class ChallengeRUDAPIView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class ChallengeTeamAPIView(APIView):
-    @swagger_auto_schema(
-        operation_summary="List challenge by team and challenge",
-        operation_description="Get challenge by ID",
-        manual_parameters=[
-            openapi.Parameter(
-                "challenge_id",
-                openapi.IN_PATH,
-                description="The ID of the challenge",
-                type=openapi.TYPE_INTEGER,
-            )
-        ],
-        responses={200: ChallengeGeneralSerializer},
-    )
-    def get(self, request, challenge_id: int, team_id: int):
-        submissions = Submission.objects.filter(
-            challenge__id=challenge_id, team__id=team_id
-        )
-        return Response(
-            SubmissionGeneralSerializer(submissions, many=True).data,
-            status=status.HTTP_200_OK,
-        )
-
-
 class ChallengeTeamListAPIView(APIView):
     @swagger_auto_schema(
         operation_summary="List challenge by team",

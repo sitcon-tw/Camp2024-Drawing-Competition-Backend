@@ -1,5 +1,6 @@
-from api.models import Submission
+from api.models import Submission, Team, Challenge, Round
 from rest_framework import serializers
+from django.utils import timezone
 
 
 class SubmissionGeneralSerializer(serializers.ModelSerializer):
@@ -7,3 +8,23 @@ class SubmissionGeneralSerializer(serializers.ModelSerializer):
         model = Submission
         fields = "__all__"
         read_only_fields = ("id",)
+
+
+class SubmissionCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Submission
+        fields = ("code", "team", "round", "challenge")
+
+    def create(self, validated_data):
+        return Submission.objects.create(
+            code=validated_data["code"],
+            score=0,
+            status="doing",
+            time=timezone.now(),
+            team=validated_data["team"],
+            round=validated_data["round"],
+            challenge=validated_data["challenge"],
+        )
+
+    def save(self, *args, **kwargs):
+        super().save()
