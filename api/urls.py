@@ -7,7 +7,7 @@ from api.views.user import (
     UserAPIView,
     LoginView,
 )
-from api.views.team import TeamAPIView, TeamTokenAPIView
+from api.views.team import TeamAPIView, TeamAuthAPIView, TeamTokenAPIView
 from api.views.submission import (
     SubmissionAPIView,
     SubmissionChallengeTeamAPIView,
@@ -33,6 +33,7 @@ urlpatterns = [
     # Teams Routes
     path("team/", TeamAPIView.as_view(), name="team"),
     path("team/<str:token>/", TeamTokenAPIView.as_view(), name="team-token"),
+    path("team/auth/token/", TeamAuthAPIView.as_view(), name="team-auth"),
     # Submission Routes
     path("submission/", SubmissionAPIView.as_view(), name="submission"),
     path(
