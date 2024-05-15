@@ -1,8 +1,3 @@
-import logging
-
-from django.utils import timezone
-from django.db import models
-from django.db.models import Max, OuterRef, Subquery
 from api.model.submission import Submission
 from api.models import Challenge
 from drf_yasg import openapi
@@ -16,25 +11,22 @@ from api.serializers.challenge import (
     ChallengeGeneralSerializer,
     ChallengeTeamSubmissionSerializer,
 )
-from api.serializers.submission import (
-    SubmissionGeneralSerializer,
-)
 
 
 class ChallengeAPIView(APIView):
     parser_classes = [MultiPartParser, FormParser]
 
-    @swagger_auto_schema(
-        operation_summary="Post challenge",
-        operation_description="Create challenge",
-        request_body=ChallengeGeneralSerializer,
-    )
-    def post(self, request):
-        serializer = ChallengeGeneralSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    # @swagger_auto_schema(
+    #     operation_summary="Post challenge",
+    #     operation_description="Create challenge",
+    #     request_body=ChallengeGeneralSerializer,
+    # )
+    # def post(self, request): # 新增挑戰
+    #     serializer = ChallengeGeneralSerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
         operation_summary="Get all challenges",
