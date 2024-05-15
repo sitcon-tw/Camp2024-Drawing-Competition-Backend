@@ -134,7 +134,7 @@ class ChallengeTeamListAPIView(APIView):
             )
         challenge_status_list = []
         for challenge in challenges:
-            challenge_status = latest_submissions.filter(challenge=challenge).last()
+            challenge_status = latest_submissions.filter(challenge=challenge).first()
             c_status = "todo"
             if challenge_status is not None:
                 c_status = challenge_status.status

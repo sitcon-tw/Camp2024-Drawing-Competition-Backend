@@ -9,18 +9,21 @@ from rest_framework.views import APIView
 
 from api.serializers.team import (
     TeamGeneralSerializer,
+    TeamAuthSerializer,
+    TeamListSerializer,
 )
 
 class TeamAPIView(APIView):
+
     @swagger_auto_schema(
         operation_summary="List Teams",
         operation_description="List all teams",
         tags=["team"],
-        responses={200: TeamGeneralSerializer(many=True)},
+        responses={200: TeamListSerializer(many=True)},
     )
     def get(self, request):
         teams = Team.objects.all()
-        serializer = TeamGeneralSerializer(teams, many=True)
+        serializer = TeamListSerializer(teams, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     @swagger_auto_schema(
         request_body=TeamGeneralSerializer,
@@ -32,13 +35,21 @@ class TeamAPIView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
 class TeamTokenAPIView(APIView):
+
     @swagger_auto_schema(
         operation_summary="Get Team",
         operation_description="Get team by token",
         tags=["team"],
-        responses={200: TeamGeneralSerializer(many=False)},
+        manual_parameters=[
+            openapi.Parameter(
+                "token",
+                openapi.IN_PATH,
+                description="The token of the team",
+                type=openapi.TYPE_STRING,
+            ),
+        ],
     )
     def get(self, request,token:str):
         if token:
@@ -49,3 +60,24 @@ class TeamTokenAPIView(APIView):
                 return Response({"message": "Token is invalid"}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"message": "Token is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TeamAuthAPIView(APIView):
+    @swagger_auto_schema(
+        operation_summary="Auth team",
+        operation_description="Auth team with token",
+        tags=["team"],
+        request_body=TeamAuthSerializer,
+        responses={200: TeamGeneralSerializer(many=False)},
+    )
+    def post(self, request):
+        data = request.data
+        serializer = TeamAuthSerializer(data=data)
+        team = Team.objects.filter(name=data["name"], token=data["token"]).first()
+        if team:
+            return Response(
+                {"status": True, "team": TeamGeneralSerializer(team).data},
+                status=status.HTTP_200_OK,
+            )
+        else:
+            return Response({"status": False, "team": None}, status=status.HTTP_200_OK)
