@@ -1,10 +1,6 @@
 import datetime
-import logging
 
-from django.utils import timezone
-from django.utils.timezone import utc
 from api.model.submission import Submission
-from api.models import Team
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -107,7 +103,7 @@ class SubmissionChallengeTeamMaxAPIView(APIView):
     def get(self, request, challenge_id: int, team_id: int):
         submissions = (
             Submission.objects.filter(challenge__id=challenge_id, team__id=team_id)
-            .order_by("-score")
+            .order_by("-fitness")
             .first()
         )
         return Response(
