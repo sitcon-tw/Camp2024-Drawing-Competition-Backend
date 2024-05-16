@@ -16,19 +16,25 @@ class Submission(models.Model):
     ]
 
     code = models.TextField(default="", verbose_name="程式碼")
-    # score = models.IntegerField(
-    #     default=0, validators=[validate_range], verbose_name="分數"
-    # )
+
     status = models.CharField(
         max_length=255, choices=status_option, default="todo", verbose_name="狀態"
+    )
+    # 評分相關
+    score = models.IntegerField(
+        default=0, validators=[validate_range], verbose_name="分數"
     )
     fitness = models.IntegerField(
         default=0, validators=[validate_range], verbose_name="吻合度"
     )
+    line_number = models.IntegerField(default=0, verbose_name="行數")
+    execute_time = models.DurationField(null=True, verbose_name="執行時間")
+    # 訊息相關
     stdout = models.TextField(default="", verbose_name="標準輸出")
     stderr = models.TextField(default="", verbose_name="標準錯誤")
+    # 資訊相關
     team = models.ForeignKey("Team", on_delete=models.CASCADE, verbose_name="隊伍")
-    time = models.DateTimeField(default=timezone.now(), verbose_name="時間")
+    time = models.DateTimeField(default=timezone.now, verbose_name="時間")
     challenge = models.ForeignKey(
         "Challenge", on_delete=models.CASCADE, verbose_name="挑戰"
     )
