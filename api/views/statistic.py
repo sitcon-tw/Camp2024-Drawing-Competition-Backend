@@ -49,7 +49,7 @@ class TeamChallengeScoreStaticAPIView(APIView):
             result["max_score"] = item["max_score"]
             result["submission"] = SubmissionGeneralSerializer(
                 submissions.filter(
-                    challenge=item["challenge"], score=item["max_scores"]
+                    challenge=item["challenge"], score=item["max_score"]
                 ).first()
             ).data
             response.append(result)
