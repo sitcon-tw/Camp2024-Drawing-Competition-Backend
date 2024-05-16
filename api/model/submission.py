@@ -35,4 +35,4 @@ class Submission(models.Model):
     round = models.ForeignKey("Round", on_delete=models.CASCADE, verbose_name="回合")
 
     def __str__(self):
-        return f"{self.team}-{self.time.time()}-{self.round}-分數:{self.score}"
+        return f"{self.team}-{self.time.time()}-{self.round}-吻合度:{self.fitness}"
