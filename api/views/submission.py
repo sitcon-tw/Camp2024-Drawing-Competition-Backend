@@ -47,6 +47,10 @@ class SubmissionAPIView(APIView):
 
             # Judge Answer
             # TODO: Judge Answer
+            code = serializer.data.get("code")
+            with open ("media/data/code.py", "w") as f:
+                f.write(code)
+            print(f'code: {code}')
             return Response(
                 serializer.data,
                 status=status.HTTP_200_OK,
