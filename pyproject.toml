@@ -6,7 +6,7 @@ authors = ["fan9704 <cxz123499@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 django = "^4.2.0"
 djangorestframework = "^3.14.0"
 drf-yasg = "^1.21.7"
@@ -19,6 +19,10 @@ paho-mqtt = "^2.1.0"
 django-celery-beat = "^2.6.0"
 django-seed = "^0.3.1"
 pillow = "^10.3.0"
+tk = "^0.1.0"
+Pillow-PIL = "^0.1dev"
+scikit-image = "^0.23.2"
+numpy = "^1.26.4"
 
 
 [build-system]
