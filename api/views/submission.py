@@ -26,8 +26,6 @@ class SubmissionAPIView(APIView):
         serializer = SubmissionCreateSerializer(data=request.data)
         now = datetime.datetime.now()
         serializer.is_valid(raise_exception=True)
-
-        # chanllenge = serializer.data.get("challenge")
         print(f'request data: {request.data}\n\n\n')
         # challenge = (
         #     Submission.objects.filter(challenge__id=request.data["team"])
@@ -36,6 +34,8 @@ class SubmissionAPIView(APIView):
         # Retrieve the challenge object
         challenge_id = serializer.validated_data["challenge"].id
         team_id = serializer.validated_data["team"].id
+        # submission_id = serializer.data
+        # print(f'submission_id: {submission_id}\n\n\n')
         try:
             challenge = Challenge.objects.get(id=challenge_id)
         except Challenge.DoesNotExist:
@@ -58,7 +58,8 @@ class SubmissionAPIView(APIView):
             )
         
         # Create Submission
-        submission = serializer.save()
+        serializer.save()
+        submission = Submission.objects.all().last()
         image_url = challenge.image_url.url
         # print(f'image_url: {image_url}\n\n\n\n')
         # Judge Answer

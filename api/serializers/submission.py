@@ -13,7 +13,8 @@ class SubmissionGeneralSerializer(serializers.ModelSerializer):
 class SubmissionCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Submission
-        fields = ("code", "team", "round", "challenge")
+        fields = ("id","code", "team", "round", "challenge")
+        read_only_fields = ("id",)
 
     def create(self, validated_data):
         return Submission.objects.create(
@@ -23,6 +24,3 @@ class SubmissionCreateSerializer(serializers.ModelSerializer):
             round=validated_data["round"],
             challenge=validated_data["challenge"],
         )
-
-    def save(self, *args, **kwargs):
-        super().save()
