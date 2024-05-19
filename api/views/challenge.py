@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.views import APIView
+from rest_framework import generics
 
 from api.serializers.challenge import (
     ChallengeGeneralSerializer,
@@ -29,26 +30,9 @@ class ChallengeAPIView(APIView):
         )
 
 
-class ChallengeRUDAPIView(APIView):
-    @swagger_auto_schema(
-        operation_summary="Get challenge by ID",
-        operation_description="Get challenge by ID",
-        manual_parameters=[
-            openapi.Parameter(
-                "challenge_id",
-                openapi.IN_PATH,
-                description="The ID of the challenge",
-                type=openapi.TYPE_INTEGER,
-            )
-        ],
-        responses={200: ChallengeGeneralSerializer},
-    )
-    def get(self, request, challenge_id: int):
-        challenge = Challenge.objects.get(id=challenge_id)
-        return Response(
-            ChallengeGeneralSerializer(challenge).data,
-            status=status.HTTP_200_OK,
-        )
+class ChallengeRetrieveAPIView(generics.RetrieveAPIView):
+    serializer_class = ChallengeGeneralSerializer
+    queryset = Challenge.objects.all()
 
 
 class ChallengeTeamListAPIView(APIView):
