@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0005_submission_execute_time_submission_line_number_and_more'),
+        ('api', '0005_submission_execute_time_submission_word_count_and_more'),
     ]
 
     operations = [
