@@ -56,29 +56,34 @@ class SubmissionAPIView(APIView):
                 {"message": "Submission too fast"},
                 status=status.HTTP_429_TOO_MANY_REQUESTS,
             )
-        else:
-            # Create Submission
-            serializer.save()
-            image_url = challenge.image_url.url
-            # print(f'image_url: {image_url}\n\n\n\n')
-            # Judge Answer
-            # TODO: Judge Answer
-            code = serializer.data.get("code")
-            code_path = f"media/code/{challenge_id}/{team_id}.py"
-            os.makedirs(os.path.dirname(code_path), exist_ok=True) # 建立資料夾
-            
-            with open (code_path, "w") as f:
-                f.write(code)
+        
+        # Create Submission
+        submission = serializer.save()
+        image_url = challenge.image_url.url
+        # print(f'image_url: {image_url}\n\n\n\n')
+        # Judge Answer
+        # TODO: Judge Answer
+        code = serializer.data.get("code")
+        code_path = f"media/code/{challenge_id}/{team_id}.py"
+        os.makedirs(os.path.dirname(code_path), exist_ok=True) # 建立資料夾
+        
+        with open (code_path, "w") as f:
+            f.write(code)
 
-            # print(f'code: {code}')
-            result_path = f"media/result/{challenge_id}/{team_id}.png"
-            os.makedirs(os.path.dirname(result_path), exist_ok=True) # 建立資料夾
-            score, similarity, word_count, execution_time = judge_submission(code_path, image_url, result_path)
-            print(f'score: {score}, similarity: {similarity}, word_count: {word_count}, execution_time: {execution_time}\n\n')
-            return Response(
-                serializer.data,
-                status=status.HTTP_200_OK,
-            )
+        # print(f'code: {code}')
+        result_path = f"media/result/{challenge_id}/{team_id}.png"
+        os.makedirs(os.path.dirname(result_path), exist_ok=True) # 建立資料夾
+        score, similarity, word_count, execution_time = judge_submission(code_path, image_url, result_path)
+        print(f'score: {score}, similarity: {similarity}, word_count: {word_count}, execution_time: {execution_time}\n\n')
+        submission.score = score
+        submission.fitness = similarity
+        submission.word_count = word_count
+        submission.execute_time = datetime.timedelta(seconds=execution_time)
+        submission.save()
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
+        )
 
 
 class SubmissionChallengeTeamAPIView(APIView):
