@@ -70,6 +70,7 @@ class ChallengeTeamListAPIView(APIView):
         for challenge, c_status in zip(challenges, challenge_status_list):
             d = {}
             d["id"] = challenge.id
+            d["title"] = challenge.title
             d["description"] = challenge.description
             d["round_id"] = challenge.round_id.id
             d["is_valid"] = challenge.is_valid
