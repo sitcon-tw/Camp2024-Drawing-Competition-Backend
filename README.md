@@ -4,7 +4,7 @@
 
 ## Prerequisite
 
-- Python 3.9.1
+- Python 3.10.5
 - Poetry
 
 ---
