@@ -1,4 +1,5 @@
-import logging
+import datetime
+import jwt
 
 from api.models import Team
 from drf_yasg import openapi
@@ -6,9 +7,10 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import AccessToken
+
 
 from api.serializers.team import (
+    TeamAuthResponseSerializer,
     TeamGeneralSerializer,
     TeamAuthSerializer,
     TeamListSerializer,
@@ -81,19 +83,29 @@ class TeamAuthAPIView(APIView):
         operation_description="Auth team with token",
         tags=["team"],
         request_body=TeamAuthSerializer,
+        responses={200: TeamAuthResponseSerializer(many=False)},
     )
     def post(self, request):
         data = request.data
-        serializer = TeamAuthSerializer(data=data)
         team = Team.objects.filter(name=data["name"], token=data["token"]).first()
         if team:
             # Generate a new access token
-            access_token = AccessToken.for_user(team)
+
+            payload = {
+                "exp": datetime.datetime.utcnow()
+                + datetime.timedelta(days=1),  # 設定 JWT 過期時間
+                "sub": team.id,
+                "name": team.name,
+                # 將物件字典序列化為 JSON 字串並設為 sub 欄位
+            }
+            from django.conf import settings
+
+            token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
             return Response(
                 {
                     "status": True,
                     "team": TeamGeneralSerializer(team).data,
-                    "access_token": str(access_token),
+                    "access_token": str(token),
                 },
                 status=status.HTTP_200_OK,
             )

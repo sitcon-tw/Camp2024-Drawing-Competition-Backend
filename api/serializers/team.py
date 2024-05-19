@@ -19,3 +19,9 @@ class TeamAuthSerializer(serializers.ModelSerializer):
     class Meta:
         model = Team
         fields = ("name", "token")
+
+
+class TeamAuthResponseSerializer(serializers.Serializer):
+    status = serializers.BooleanField()
+    team = TeamGeneralSerializer()
+    access_token = serializers.CharField()
