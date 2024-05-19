@@ -146,6 +146,42 @@ class TeamRoundScoreStatisticAPIView(APIView):
         return Response(response, status=status.HTTP_200_OK)
 
 
+class StatisticAllTeamSingleRoundTotalScoreAPIView(APIView):
+    @swagger_auto_schema(
+        operation_summary="List all team total score by round_id",
+        operation_description="List all team total score by round_id",
+    )
+    def get(self, request, round_id: int):
+        try:
+            round = Round.objects.get(pk=round_id, is_valid=True)
+            submissions = Submission.objects.all()
+            data = []
+            for team in Team.objects.all():
+                d = {
+                    "team_id": team.id,
+                    "team_name": team.name,
+                    "total_score": 0,
+                }
+
+                total_score = 0
+                highest_score = (
+                    submissions.filter(round=round, team=team)
+                    .values("challenge")
+                    .annotate(max_score=Max("score"))
+                    .values("challenge", "max_score")
+                )
+                for item in highest_score:
+                    total_score += item["max_score"]
+                d["total_score"] = total_score
+                data.append(d)
+
+            return Response(data, status=status.HTTP_200_OK)
+        except Round.DoesNotExist:
+            return Response(
+                {"error": "Round not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+
 class StatisticAllTeamRoundTotalScoreAPIView(APIView):
     @swagger_auto_schema(
         operation_summary="List all team total score in every round",
