@@ -2,7 +2,8 @@ from api.model.challenge import Challenge
 from api.model.round import Round
 from api.model.team import Team
 from api.models import Submission
-from django.db.models import Max
+from django.db.models import Case, When, Max, Value, IntegerField
+from django.db.models.functions import Coalesce
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -154,24 +155,32 @@ class StatisticAllTeamSingleRoundTotalScoreAPIView(APIView):
     def get(self, request, round_id: int):
         try:
             round = Round.objects.get(pk=round_id, is_valid=True)
-            submissions = Submission.objects.all()
+            challenges = Challenge.objects.filter(round_id=round)
             data = []
             for team in Team.objects.all():
                 d = {
                     "team_id": team.id,
                     "team_name": team.name,
                     "total_score": 0,
+                    "score_list": [],
                 }
 
-                total_score = 0
-                highest_score = (
-                    submissions.filter(round=round, team=team)
-                    .values("challenge")
-                    .annotate(max_score=Max("score"))
-                    .values("challenge", "max_score")
-                )
-                for item in highest_score:
-                    total_score += item["max_score"]
+                for challenge in challenges:
+                    total_score = 0
+                    highest_score = (
+                        Submission.objects.filter(
+                            round=round, team=team, challenge=challenge
+                        )
+                        .values("challenge")
+                        .annotate(max_score=Max("score"))
+                        .values("challenge", "max_score")
+                    )
+                    if highest_score:
+                        for item in highest_score:
+                            total_score += item["max_score"]
+                            d["score_list"].append(item["max_score"])
+                    else:
+                        d["score_list"].append(0)
                 d["total_score"] = total_score
                 data.append(d)
 
