@@ -4,6 +4,7 @@ import logging
 from django.utils import timezone
 from django.utils.timezone import utc
 from api.model.submission import Submission
+from api.models import Challenge
 from api.models import Team
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -15,6 +16,8 @@ from api.serializers.submission import (
     SubmissionGeneralSerializer,
     SubmissionCreateSerializer,
 )
+from judge.judge import judge_submission
+import os
 
 class SubmissionAPIView(APIView):
 
@@ -26,6 +29,20 @@ class SubmissionAPIView(APIView):
         now = datetime.datetime.now()
         serializer.is_valid(raise_exception=True)
 
+        # chanllenge = serializer.data.get("challenge")
+        print(f'request data: {request.data}\n\n\n')
+        # challenge = (
+        #     Submission.objects.filter(challenge__id=request.data["team"])
+        #     .first()
+        # )
+        # Retrieve the challenge object
+        challenge_id = serializer.validated_data["challenge"].id
+        team_id = serializer.validated_data["team"].id
+        try:
+            challenge = Challenge.objects.get(id=challenge_id)
+        except Challenge.DoesNotExist:
+            return Response({"message": "Challenge not found"}, status=status.HTTP_404_NOT_FOUND)
+                                    
         last_submission = (
             Submission.objects.filter(team__id=request.data["team"])
             .order_by("time")
@@ -44,13 +61,21 @@ class SubmissionAPIView(APIView):
         else:
             # Create Submission
             serializer.save()
-
+            image_url = challenge.image_url.url
+            print(f'image_url: {image_url}\n\n\n\n')
             # Judge Answer
             # TODO: Judge Answer
             code = serializer.data.get("code")
-            with open ("media/data/code.py", "w") as f:
+            code_path = f"media/code/{challenge_id}/{team_id}.py"
+            os.makedirs(os.path.dirname(code_path), exist_ok=True) # 建立資料夾
+            
+            with open (code_path, "w") as f:
                 f.write(code)
-            print(f'code: {code}')
+
+            # print(f'code: {code}')
+            result_path = f"media/result/{challenge_id}/{team_id}.png"
+            os.makedirs(os.path.dirname(result_path), exist_ok=True) # 建立資料夾
+            score = judge_submission(code_path, image_url, result_path)
             return Response(
                 serializer.data,
                 status=status.HTTP_200_OK,
