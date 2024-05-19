@@ -7,3 +7,15 @@ class TeamGeneralSerializer(serializers.ModelSerializer):
         model = Team
         fields = "__all__"
         read_only_fields = ("id",)
+
+
+class TeamListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Team
+        fields = ("id", "name")
+
+
+class TeamAuthSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Team
+        fields = ("name", "token")

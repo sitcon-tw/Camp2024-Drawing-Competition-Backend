@@ -1,0 +1,42 @@
+name: Feature Issue
+description: File a feature request
+title: "[Feat]: "
+labels: ["feat"]
+projects: ["fan9704/Drawing-Competition-Backend"]
+assignees:
+  - fan9704
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感謝您願意花時間填寫 feature issue ! Thanks for taking the time to fill out this feature issue!
+  - type: input
+    id: contact
+    attributes:
+      label: Contact Details
+      description: 我們如何向您聯絡請留下聯繫方式? How can we get in touch with you if we need more info?
+      placeholder: ex. email@example.com
+    validations:
+      required: false
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 你想要提出什麼樣的新需求/功能? What demand/feature do you want?
+      description: 也請告訴我們你預期他應該發生甚麼? Also tell us, what did you expect to happen?
+      placeholder: 告訴我們你有甚麼點子甚麼! Tell us your idea!
+      value: "一個 feature/demand 提出 A demand/feature issue!"
+    validations:
+      required: true
+  - type: textarea
+    id: reference
+    attributes:
+      label: 提供相關的技術或實作參考 Relevant technical or implementation references
+      description: 請複製與貼上相關技術或實作參考. Please copy and paste any relevant technical or implementation references. This will be automatically formatted into code, so no need for backticks.
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: 行為準則 Code of Conduct 
+      description: 提交您的 Issue 代表您同意我們的行為準則 By submitting this issue, you agree to follow our [Code of Conduct](https://example.com). 
+      options:
+        - label: 我同意本專案的行為準則 I agree to follow this project's Code of Conduct
+          required: true

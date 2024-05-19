@@ -14,19 +14,22 @@
 ### Init Env
 
 ```shell
+poetry install # Install Dependencies
 poetry shell # In Project root
 ```
 
 ### Migrate Database
 
 ```shell
-python manage.py migrate
+python manage.py makemigrations # Check Model Context modification
+python manage.py migrate # Migrate Migrations to Database
 ```
 
 ### Run Server
 
 ```shell
-python manage.py runserver
+python manage.py runserver [0.0.0.0:8000] # Run Server
+# 0.0.0.0:8000 mean output to all IP
 ```
 
 ---

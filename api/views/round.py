@@ -1,22 +1,24 @@
-import logging
-
-from api.models import Round
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
+from api.models import Round, Challenge
 from rest_framework import generics
-from rest_framework import status
-from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.response import Response
 
-from api.serializers.round import (
-    RoundGeneralSerializer,
-)
+from api.serializers.round import RoundGeneralSerializer, RoundChallengeSerializer
 
-class RoundListCreateAPIView(generics.ListCreateAPIView):
-    queryset = Round.objects.all()
-    serializer_class = RoundGeneralSerializer
 
-    
+class RoundListCreateAPIView(APIView):  # 列出所有回合
+    def get(self, request):
+        rounds = Round.objects.filter(is_valid=True)
+        if rounds.count() == 0:
+            return Response(
+                None,
+                status=404,
+            )
+        else:
+            serializer = RoundChallengeSerializer(rounds, many=True)
+            return Response(serializer.data)
+
+
 class RoundAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Round.objects.all()
     serializer_class = RoundGeneralSerializer
