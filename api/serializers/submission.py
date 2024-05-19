@@ -18,9 +18,7 @@ class SubmissionCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return Submission.objects.create(
             code=validated_data["code"],
-            score=0,
             status="doing",
-            time=timezone.now(),
             team=validated_data["team"],
             round=validated_data["round"],
             challenge=validated_data["challenge"],

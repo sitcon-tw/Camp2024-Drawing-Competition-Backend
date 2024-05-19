@@ -18,4 +18,4 @@ class Challenge(models.Model):
     is_valid = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"題目:{id}-{self.description}"
+        return f"題目:{self.id}-{self.description}"
