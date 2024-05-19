@@ -19,6 +19,7 @@ paho-mqtt = "^2.1.0"
 django-celery-beat = "^2.6.0"
 django-seed = "^0.3.1"
 pillow = "^10.3.0"
+djangorestframework-simplejwt = "^5.3.1"
 
 
 [build-system]
