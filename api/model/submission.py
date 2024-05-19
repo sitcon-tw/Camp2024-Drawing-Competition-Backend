@@ -27,7 +27,7 @@ class Submission(models.Model):
     fitness = models.IntegerField(
         default=0, validators=[validate_range], verbose_name="吻合度"
     )
-    line_number = models.IntegerField(default=0, verbose_name="行數")
+    word_count = models.IntegerField(default=0, verbose_name="單字數")
     execute_time = models.DurationField(null=True, verbose_name="執行時間")
     # 訊息相關
     stdout = models.TextField(default="", verbose_name="標準輸出")
