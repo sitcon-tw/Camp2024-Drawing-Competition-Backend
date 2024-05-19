@@ -15,7 +15,7 @@ class Command(BaseCommand):
                     status=Submission.status_option[random.randint(0, 3)][0],
                     score=random.randint(0, 100),
                     fitness=random.randint(0, 100),
-                    word_count=random.randint(0, 100),
+                    line_number=random.randint(0, 100),
                     execute_time=datetime.timedelta(seconds=random.randint(0, 10)),
                     stdout=f"# {team.name} 的標準輸出",
                     stderr=f"# {team.name} 的標準錯誤",
