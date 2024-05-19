@@ -16,7 +16,8 @@ from api.serializers.submission import (
     SubmissionGeneralSerializer,
     SubmissionCreateSerializer,
 )
-from judge.judge import judge_submission
+from judge import judge_submission
+
 import os
 
 class SubmissionAPIView(APIView):
@@ -62,7 +63,7 @@ class SubmissionAPIView(APIView):
             # Create Submission
             serializer.save()
             image_url = challenge.image_url.url
-            print(f'image_url: {image_url}\n\n\n\n')
+            # print(f'image_url: {image_url}\n\n\n\n')
             # Judge Answer
             # TODO: Judge Answer
             code = serializer.data.get("code")
@@ -75,7 +76,8 @@ class SubmissionAPIView(APIView):
             # print(f'code: {code}')
             result_path = f"media/result/{challenge_id}/{team_id}.png"
             os.makedirs(os.path.dirname(result_path), exist_ok=True) # 建立資料夾
-            score = judge_submission(code_path, image_url, result_path)
+            score, similarity, word_count, execution_time = judge_submission(code_path, image_url, result_path)
+            print(f'score: {score}, similarity: {similarity}, word_count: {word_count}, execution_time: {execution_time}\n\n')
             return Response(
                 serializer.data,
                 status=status.HTTP_200_OK,
