@@ -14,19 +14,7 @@ from api.serializers.challenge import (
 
 
 class ChallengeAPIView(APIView):
-    parser_classes = [MultiPartParser, FormParser]
-
-    # @swagger_auto_schema(
-    #     operation_summary="Post challenge",
-    #     operation_description="Create challenge",
-    #     request_body=ChallengeGeneralSerializer,
-    # )
-    # def post(self, request): # 新增挑戰
-    #     serializer = ChallengeGeneralSerializer(data=request.data)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    # parser_classes = [MultiPartParser, FormParser]
 
     @swagger_auto_schema(
         operation_summary="Get all challenges",
@@ -61,44 +49,6 @@ class ChallengeRUDAPIView(APIView):
             ChallengeGeneralSerializer(challenge).data,
             status=status.HTTP_200_OK,
         )
-
-    @swagger_auto_schema(
-        operation_summary="Update challenge by ID",
-        operation_description="Update challenge by ID",
-        manual_parameters=[
-            openapi.Parameter(
-                "challenge_id",
-                openapi.IN_PATH,
-                description="The ID of the challenge",
-                type=openapi.TYPE_INTEGER,
-            )
-        ],
-        request_body=ChallengeGeneralSerializer,
-    )
-    def put(self, request, challenge_id: int):
-        challenge = Challenge.objects.get(id=challenge_id)
-        serializer = ChallengeGeneralSerializer(challenge, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    @swagger_auto_schema(
-        operation_summary="Delete challenge by ID",
-        operation_description="Delete challenge by ID",
-        manual_parameters=[
-            openapi.Parameter(
-                "challenge_id",
-                openapi.IN_PATH,
-                description="The ID of the challenge",
-                type=openapi.TYPE_INTEGER,
-            )
-        ],
-    )
-    def delete(self, request, challenge_id: int):
-        challenge = Challenge.objects.get(id=challenge_id)
-        challenge.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ChallengeTeamListAPIView(APIView):

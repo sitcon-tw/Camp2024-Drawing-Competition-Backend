@@ -19,6 +19,6 @@ class RoundListCreateAPIView(APIView):  # 列出所有回合
             return Response(serializer.data)
 
 
-class RoundAPIView(generics.RetrieveUpdateDestroyAPIView):
+class RoundAPIView(generics.RetrieveAPIView):
     queryset = Round.objects.all()
     serializer_class = RoundGeneralSerializer

@@ -2,7 +2,7 @@ from django.urls import include, path
 
 urlpatterns = [
     # Account Routes
-    path("account/", include("api.controllers.account")),
+    # path("account/", include("api.controllers.account")),
     # Teams Routes
     path("team/", include("api.controllers.team")),
     # Submission Routes

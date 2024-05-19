@@ -25,16 +25,6 @@ class TeamAPIView(APIView):
         teams = Team.objects.all()
         serializer = TeamListSerializer(teams, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    @swagger_auto_schema(
-        request_body=TeamGeneralSerializer,
-    )
-    def post(self, request):
-        data = request.data
-        serializer = TeamGeneralSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class TeamTokenAPIView(APIView):
 
