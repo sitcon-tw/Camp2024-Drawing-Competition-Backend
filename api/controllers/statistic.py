@@ -1,6 +1,7 @@
 from django.urls import path
 from api.views.statistic import (
     StatisticAllTeamRoundTotalScoreAPIView,
+    StatisticAllTeamSingleRoundTotalScoreAPIView,
     TeamChallengeScoreStaticAPIView,
     TeamChallengeSubmissionStaticAPIView,
     TeamRoundScoreStatisticAPIView,
@@ -27,5 +28,10 @@ urlpatterns = [
         "round/allTeam/",
         StatisticAllTeamRoundTotalScoreAPIView.as_view(),
         name="statistic-round-allTeam",
+    ),
+    path(
+        "round/<int:round_id>/allTeam/",
+        StatisticAllTeamSingleRoundTotalScoreAPIView.as_view(),
+        name="statistic-single-round-allTeam",
     ),
 ]
