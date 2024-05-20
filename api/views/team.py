@@ -16,6 +16,7 @@ from api.serializers.team import (
     TeamListSerializer,
 )
 
+
 class TeamAPIView(APIView):
 
     @swagger_auto_schema(
@@ -28,6 +29,7 @@ class TeamAPIView(APIView):
         teams = Team.objects.all()
         serializer = TeamListSerializer(teams, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class TeamTokenAPIView(APIView):
 
@@ -44,15 +46,21 @@ class TeamTokenAPIView(APIView):
             ),
         ],
     )
-    def get(self, request,token:str):
+    def get(self, request, token: str):
         if token:
             team = Team.objects.filter(token=token).first()
             if team:
-                return Response(TeamGeneralSerializer(team).data, status=status.HTTP_200_OK)
+                return Response(
+                    TeamGeneralSerializer(team).data, status=status.HTTP_200_OK
+                )
             else:
-                return Response({"message": "Token is invalid"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"message": "Token is invalid"}, status=status.HTTP_400_BAD_REQUEST
+                )
         else:
-            return Response({"message": "Token is required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"message": "Token is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class TeamAuthAPIView(APIView):
@@ -87,7 +95,7 @@ class TeamAuthAPIView(APIView):
     )
     def post(self, request):
         data = request.data
-        team = Team.objects.filter(name=data["name"], token=data["token"]).first()
+        team = Team.objects.filter(token=data["token"]).first()
         if team:
             # Generate a new access token
 
