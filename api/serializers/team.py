@@ -18,7 +18,7 @@ class TeamListSerializer(serializers.ModelSerializer):
 class TeamAuthSerializer(serializers.ModelSerializer):
     class Meta:
         model = Team
-        fields = ("name", "token")
+        fields = ["token"]
 
 
 class TeamAuthResponseSerializer(serializers.Serializer):
