@@ -74,6 +74,7 @@ class ChallengeTeamListAPIView(APIView):
             d["description"] = challenge.description
             d["round_id"] = challenge.round_id.id
             d["is_valid"] = challenge.is_valid
+            d["difficulty"] = challenge.difficulty
             d["status"] = c_status
             team_challenges.append(d)
         return Response(
