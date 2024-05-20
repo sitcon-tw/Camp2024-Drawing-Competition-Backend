@@ -14,5 +14,6 @@ class ChallengeTeamSubmissionSerializer(serializers.Serializer):
     status = serializers.CharField()
     title = serializers.CharField()
     description = serializers.CharField()
+    difficulty = serializers.CharField()
     round_id = serializers.IntegerField()
     is_valid = serializers.BooleanField()
