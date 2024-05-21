@@ -8,14 +8,14 @@ from api.serializers.round import RoundGeneralSerializer, RoundChallengeSerializ
 
 class RoundListCreateAPIView(APIView):  # 列出所有回合
     def get(self, request):
-        rounds = Round.objects.filter(is_valid=True)
-        if rounds.count() == 0:
+        round = Round.objects.filter(is_valid=True).last()
+        if not round:
             return Response(
                 None,
                 status=404,
             )
         else:
-            serializer = RoundChallengeSerializer(rounds, many=True)
+            serializer = RoundChallengeSerializer(round)
             return Response(serializer.data)
 
 
