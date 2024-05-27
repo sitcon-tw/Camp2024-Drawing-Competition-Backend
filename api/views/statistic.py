@@ -221,3 +221,36 @@ class StatisticAllTeamRoundTotalScoreAPIView(APIView):
             data.append(d)
 
         return Response(data, status=status.HTTP_200_OK)
+
+
+class StatisticTop3TeamChallengeScore(APIView):
+    def get(self, request, challenge_id: int):
+        submissions = Submission.objects.filter(challenge_id=challenge_id)
+        # 使用 annotate 來計算每個 Team 的最高分
+        highest_score = (
+            submissions.values("team")
+            .annotate(max_score=Max("score"))
+            .values("team", "fitness", "execute_time", "max_score")
+            .order_by("-max_score")
+        )
+        # 將結果整理與輸出
+        response = []
+        teamList = []
+        for item in highest_score:
+            if item["team"] in teamList:
+                continue
+            if len(response) == 3:
+                break
+            result = {}
+            result["team"] = item["team"]
+            result["team_name"] = Team.objects.get(id=item["team"]).name
+            result["max_score"] = item["max_score"]
+            result["fitness"] = item["fitness"]
+            result["execute_time"] = item["execute_time"]
+
+            # result["submission"] = SubmissionGeneralSerializer(
+            #     submissions.filter(team=item["team"], score=item["max_score"]).first()
+            # ).data
+            response.append(result)
+            teamList.append(item["team"])
+        return Response(response, status=status.HTTP_200_OK)
