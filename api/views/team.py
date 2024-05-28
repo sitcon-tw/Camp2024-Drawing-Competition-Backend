@@ -1,4 +1,5 @@
-import logging
+import datetime
+import jwt
 
 from api.models import Team
 from drf_yasg import openapi
@@ -7,11 +8,14 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+
 from api.serializers.team import (
+    TeamAuthResponseSerializer,
     TeamGeneralSerializer,
     TeamAuthSerializer,
     TeamListSerializer,
 )
+
 
 class TeamAPIView(APIView):
 
@@ -25,16 +29,7 @@ class TeamAPIView(APIView):
         teams = Team.objects.all()
         serializer = TeamListSerializer(teams, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    @swagger_auto_schema(
-        request_body=TeamGeneralSerializer,
-    )
-    def post(self, request):
-        data = request.data
-        serializer = TeamGeneralSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class TeamTokenAPIView(APIView):
 
@@ -51,15 +46,21 @@ class TeamTokenAPIView(APIView):
             ),
         ],
     )
-    def get(self, request,token:str):
+    def get(self, request, token: str):
         if token:
             team = Team.objects.filter(token=token).first()
             if team:
-                return Response(TeamGeneralSerializer(team).data, status=status.HTTP_200_OK)
+                return Response(
+                    TeamGeneralSerializer(team).data, status=status.HTTP_200_OK
+                )
             else:
-                return Response({"message": "Token is invalid"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"message": "Token is invalid"}, status=status.HTTP_400_BAD_REQUEST
+                )
         else:
-            return Response({"message": "Token is required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"message": "Token is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class TeamAuthAPIView(APIView):
@@ -81,3 +82,43 @@ class TeamAuthAPIView(APIView):
             )
         else:
             return Response({"status": False, "team": None}, status=status.HTTP_200_OK)
+
+
+class TeamAuthAPIView(APIView):
+
+    @swagger_auto_schema(
+        operation_summary="Auth team",
+        operation_description="Auth team with token",
+        tags=["team"],
+        request_body=TeamAuthSerializer,
+        responses={200: TeamAuthResponseSerializer(many=False)},
+    )
+    def post(self, request):
+        data = request.data
+        team = Team.objects.filter(token=data["token"]).first()
+        if team:
+            # Generate a new access token
+
+            payload = {
+                "exp": datetime.datetime.utcnow()
+                + datetime.timedelta(days=1),  # 設定 JWT 過期時間
+                "sub": team.id,
+                "name": team.name,
+                # 將物件字典序列化為 JSON 字串並設為 sub 欄位
+            }
+            from django.conf import settings
+
+            token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
+            return Response(
+                {
+                    "status": True,
+                    "team": TeamGeneralSerializer(team).data,
+                    "access_token": str(token),
+                },
+                status=status.HTTP_200_OK,
+            )
+        else:
+            return Response(
+                {"status": False, "team": None, "access_token": None},
+                status=status.HTTP_200_OK,
+            )
