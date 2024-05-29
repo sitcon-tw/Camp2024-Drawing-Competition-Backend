@@ -40,7 +40,7 @@ class SubmissionAPIView(APIView):
             challenge = Challenge.objects.get(id=challenge_id)
         except Challenge.DoesNotExist:
             return Response({"message": "Challenge not found"}, status=status.HTTP_404_NOT_FOUND)
-                                    
+
         last_submission = (
             Submission.objects.filter(team__id=request.data["team"])
             .order_by("time")
@@ -56,7 +56,7 @@ class SubmissionAPIView(APIView):
                 {"message": "Submission too fast"},
                 status=status.HTTP_429_TOO_MANY_REQUESTS,
             )
-        
+
         # Create Submission
         serializer.save()
         submission = Submission.objects.all().last()
@@ -67,7 +67,7 @@ class SubmissionAPIView(APIView):
         code = serializer.data.get("code")
         code_path = f"media/code/{challenge_id}/{team_id}.py"
         os.makedirs(os.path.dirname(code_path), exist_ok=True) # 建立資料夾
-        
+
         with open (code_path, "w") as f:
             f.write(code)
 
@@ -75,11 +75,13 @@ class SubmissionAPIView(APIView):
         result_path = f"media/result/{challenge_id}/{team_id}.png"
         os.makedirs(os.path.dirname(result_path), exist_ok=True) # 建立資料夾
         score, similarity, word_count, execution_time = judge_submission(code_path, image_url, result_path)
+        # Complete Judge
         print(f'score: {score}, similarity: {similarity}, word_count: {word_count}, execution_time: {execution_time}\n\n')
         submission.score = score
         submission.fitness = similarity
         submission.word_count = word_count
         submission.execute_time = datetime.timedelta(seconds=execution_time)
+        submission.status = "success"
         submission.save()
         return Response(
             serializer.data,
