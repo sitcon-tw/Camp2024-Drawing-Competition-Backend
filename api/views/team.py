@@ -87,7 +87,7 @@ class TeamAuthAPIView(APIView):
     )
     def post(self, request):
         data = request.data
-        team = Team.objects.filter(name=data["name"], token=data["token"]).first()
+        team = Team.objects.filter(token=data["token"]).first()
         if team:
             # Generate a new access token
 

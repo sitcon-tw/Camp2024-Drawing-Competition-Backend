@@ -2,8 +2,10 @@ import subprocess
 import os
 from PIL import Image
 import time
-from skimage.metrics import structural_similarity as ssim
+import platform
 import numpy as np
+from skimage.metrics import structural_similarity as ssim
+
 
 def get_word_count(file_path):
     with open(file_path, 'r') as file:
@@ -13,7 +15,7 @@ def get_word_count(file_path):
 
 def linear_normalize(value, min_value, max_value):
     return (value - min_value) / (max_value - min_value)
-    
+
 def convert_ps_to_png(ps_file, png_file):
     # Ensure the output directory exists
     # Open the PostScript file and convert it to a PNG file
@@ -64,7 +66,7 @@ def judge_logic(image_url, result_path, word_count, execution_time):
     return total_score, similarity
 
 def run_code(code_path, image_url, result_path):
-    
+
     result_dir = os.path.dirname(result_path)
     ps_file = f"{result_dir}/temp.ps"
     # png_file = f"{result_dir}/{output_filename}.png"
@@ -76,14 +78,18 @@ def run_code(code_path, image_url, result_path):
     # Use check to raise an exception if the script fails
     start_time = time.time()
     try:
-        subprocess.run(['python3', code_path, ps_file], check=True)
+        # Detect Run Time OS
+        if platform.system() == "Windows":
+            subprocess.run(["python", code_path, ps_file], check=True)
+        else:
+            subprocess.run(["python3", code_path, ps_file], check=True)
     except subprocess.CalledProcessError as e:
         # Handle errors in the subprocess
-        print(f"Error: {e}")
+        print(f"Subprocess CalledProcessError: {e}")
         return None
     end_time = time.time()
     execution_time = end_time - start_time
-    
+
     # check if the PostScript file was created
     if not os.path.exists(ps_file):
         return 0, 0, word_count, execution_time
