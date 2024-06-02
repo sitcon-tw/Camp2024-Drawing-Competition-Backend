@@ -21,6 +21,7 @@ class SubmissionAPIView(APIView):
 
     @swagger_auto_schema(
         request_body=SubmissionCreateSerializer,
+        responses={200: SubmissionGeneralSerializer},
     )
     def post(self, request):  # 上傳程式碼
         serializer = SubmissionCreateSerializer(data=request.data)
@@ -84,7 +85,7 @@ class SubmissionAPIView(APIView):
         submission.status = "success"
         submission.save()
         return Response(
-            serializer.data,
+            SubmissionGeneralSerializer(submission).data,
             status=status.HTTP_200_OK,
         )
 
