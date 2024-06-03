@@ -1,5 +1,5 @@
 import datetime
-
+import os
 from api.model.submission import Submission
 from api.models import Challenge
 from api.models import Team
@@ -13,9 +13,13 @@ from api.serializers.submission import (
     SubmissionGeneralSerializer,
     SubmissionCreateSerializer,
 )
+from api.repositories.submission import SubmissionRepository
+from api.repositories.challenge import ChallengeRepository
 from judge import judge_submission
 
-import os
+# Infra Repositories
+repository = SubmissionRepository(Submission)
+challengeRepository = ChallengeRepository(Challenge)
 
 class SubmissionAPIView(APIView):
 
@@ -28,25 +32,16 @@ class SubmissionAPIView(APIView):
         now = datetime.datetime.now()
         serializer.is_valid(raise_exception=True)
         print(f'request data: {request.data}\n\n\n')
-        # challenge = (
-        #     Submission.objects.filter(challenge__id=request.data["team"])
-        #     .first()
-        # )
+
         # Retrieve the challenge object
         challenge_id = serializer.validated_data["challenge"].id
         team_id = serializer.validated_data["team"].id
-        # submission_id = serializer.data
-        # print(f'submission_id: {submission_id}\n\n\n')
         try:
-            challenge = Challenge.objects.get(id=challenge_id)
+            challenge = challengeRepository.getById(challenge_id)
         except Challenge.DoesNotExist:
             return Response({"message": "Challenge not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        last_submission = (
-            Submission.objects.filter(team__id=request.data["team"])
-            .order_by("time")
-            .last()
-        )
+        last_submission = repository.findNewestSubmissionByTeamId(request.data["team"])
         if last_submission is None:
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -60,11 +55,9 @@ class SubmissionAPIView(APIView):
 
         # Create Submission
         serializer.save()
-        submission = Submission.objects.all().last()
+        submission = repository.getLastSubmission()
         image_url = challenge.image_url.url
-        # print(f'image_url: {image_url}\n\n\n\n')
         # Judge Answer
-        # TODO: Judge Answer
         code = serializer.data.get("code")
         code_path = f"media/code/{challenge_id}/{team_id}.py"
         os.makedirs(os.path.dirname(code_path), exist_ok=True) # 建立資料夾
@@ -72,7 +65,6 @@ class SubmissionAPIView(APIView):
         with open (code_path, "w") as f:
             f.write(code)
 
-        # print(f'code: {code}')
         result_path = f"media/result/{challenge_id}/{team_id}.png"
         os.makedirs(os.path.dirname(result_path), exist_ok=True) # 建立資料夾
         score, similarity, word_count, execution_time = judge_submission(code_path, image_url, result_path)
@@ -142,10 +134,8 @@ class SubmissionChallengeTeamMaxAPIView(APIView):
         responses={200: SubmissionGeneralSerializer},
     )
     def get(self, request, challenge_id: int, team_id: int):
-        submissions = (
-            Submission.objects.filter(challenge__id=challenge_id, team__id=team_id)
-            .order_by("-fitness")
-            .first()
+        submissions = repository.findMaxScoreSubmissionByChallengeIdAndTeamId(
+            challengeId=challenge_id, teamId=team_id
         )
         return Response(
             SubmissionGeneralSerializer(submissions).data,
@@ -155,5 +145,5 @@ class SubmissionChallengeTeamMaxAPIView(APIView):
 
 class SubmissionTeamAPIView(APIView):
     def get(self, request, team_id:int): # 取得隊伍的所有提交
-        submissions = Submission.objects.filter(team=team_id)
+        submissions = repository.findAllSubmissionByTeamId(teamId=team_id)
         return Response(SubmissionGeneralSerializer(submissions, many=True).data, status=status.HTTP_200_OK)

@@ -8,7 +8,7 @@ class ChallengeGeneralSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = ("id",)
 
-
+# Response DTO 列出隊伍中所有挑戰解題狀態
 class ChallengeTeamSubmissionSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     status = serializers.CharField()
