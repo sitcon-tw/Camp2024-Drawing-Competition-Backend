@@ -269,7 +269,7 @@ class StatisticTop3TeamChallengeScore(APIView):
                 break
             result = {}
             result["team"] = item["team"]
-            result["team_name"] = teamRepository.getById(item["team"]).name
+            result["team_name"] = teamRepository.get_by_id(item["team"]).name
             result["max_score"] = item["max_score"]
             result["fitness"] = item["fitness"]
             result["execute_time"] = item["execute_time"]
