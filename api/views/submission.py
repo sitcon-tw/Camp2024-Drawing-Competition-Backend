@@ -37,7 +37,7 @@ class SubmissionAPIView(APIView):
         challenge_id = serializer.validated_data["challenge"].id
         team_id = serializer.validated_data["team"].id
         try:
-            challenge = challengeRepository.getById(challenge_id)
+            challenge = challengeRepository.get_by_id(challenge_id)
         except Challenge.DoesNotExist:
             return Response({"message": "Challenge not found"}, status=status.HTTP_404_NOT_FOUND)
 
