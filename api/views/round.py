@@ -1,7 +1,7 @@
 import datetime
 
 from django.utils import timezone
-from api.models import Round, Challenge
+from api.models import Round
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -12,7 +12,7 @@ from api.serializers.round import RoundGeneralSerializer, RoundChallengeSerializ
 from api.repositories.round import RoundRepository
 
 # Infra Repositories
-repository = RoundRepository(Round)
+repository: RoundRepository = RoundRepository(Round)
 
 
 class RoundListAPIView(APIView):  # 列出所有回合
@@ -28,12 +28,11 @@ class RoundListAPIView(APIView):  # 列出所有回合
     )
     def get(self, request):
         # 比較當前時間進行到哪一個回合
-        now = timezone.now()
-        round = repository.getCurrentRound()
-        if round:
+        round_instance = repository.getCurrentRound()
+        if round_instance:
             # 標註該 Round 已經進行過了
-            round.is_valid = True
-            round.save()
+            round_instance.is_valid = True
+            round_instance.save()
             serializer = RoundChallengeSerializer(round)
             return Response(serializer.data)
         # 檢查是否所有回合結束
@@ -43,7 +42,7 @@ class RoundListAPIView(APIView):  # 列出所有回合
                 status=status.HTTP_204_NO_CONTENT,
             )
         # 檢查是否沒有開放回合
-        elif not round:
+        elif not round_instance:
             return Response(
                 None,
                 status=status.HTTP_404_NOT_FOUND,
@@ -51,5 +50,5 @@ class RoundListAPIView(APIView):  # 列出所有回合
 
 
 class RoundAPIView(generics.RetrieveAPIView):
-    queryset = repository.findAll()
+    queryset = repository.find_all()
     serializer_class = RoundGeneralSerializer

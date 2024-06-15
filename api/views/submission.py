@@ -18,8 +18,8 @@ from api.repositories.challenge import ChallengeRepository
 from judge import judge_submission
 
 # Infra Repositories
-repository = SubmissionRepository(Submission)
-challengeRepository = ChallengeRepository(Challenge)
+repository: SubmissionRepository = SubmissionRepository(Submission)
+challengeRepository: ChallengeRepository = ChallengeRepository(Challenge)
 
 class SubmissionAPIView(APIView):
 
@@ -135,7 +135,7 @@ class SubmissionChallengeTeamMaxAPIView(APIView):
     )
     def get(self, request, challenge_id: int, team_id: int):
         submissions = repository.findMaxScoreSubmissionByChallengeIdAndTeamId(
-            challengeId=challenge_id, teamId=team_id
+            challenge_id=challenge_id, team_id=team_id
         )
         return Response(
             SubmissionGeneralSerializer(submissions).data,
@@ -145,5 +145,5 @@ class SubmissionChallengeTeamMaxAPIView(APIView):
 
 class SubmissionTeamAPIView(APIView):
     def get(self, request, team_id:int): # 取得隊伍的所有提交
-        submissions = repository.findAllSubmissionByTeamId(teamId=team_id)
+        submissions = repository.findAllSubmissionByTeamId(team_id=team_id)
         return Response(SubmissionGeneralSerializer(submissions, many=True).data, status=status.HTTP_200_OK)

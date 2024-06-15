@@ -14,8 +14,8 @@ from api.serializers.challenge import (
     ChallengeTeamSubmissionSerializer,
 )
 # Infra Repositories
-repository = ChallengeRepository(Challenge)
-submissionRepository = SubmissionRepository(Submission)
+repository: ChallengeRepository = ChallengeRepository(Challenge)
+submissionRepository: SubmissionRepository = SubmissionRepository(Submission)
 
 
 class ChallengeAPIView(APIView):
@@ -25,7 +25,7 @@ class ChallengeAPIView(APIView):
         responses={200: ChallengeGeneralSerializer(many=True)},
     )
     def get(self, request):
-        challenges = repository.findAll()
+        challenges = repository.find_all()
         return Response(
             ChallengeGeneralSerializer(challenges, many=True).data,
             status=status.HTTP_200_OK,
@@ -34,7 +34,7 @@ class ChallengeAPIView(APIView):
 
 class ChallengeRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = ChallengeGeneralSerializer
-    queryset = repository.findAll()
+    queryset = repository.find_all()
 
 
 class ChallengeTeamListAPIView(APIView):
@@ -54,7 +54,7 @@ class ChallengeTeamListAPIView(APIView):
     )
     def get(self, request):
         team_id = request.GET.get("team_id", None)
-        challenges = repository.findAll()
+        challenges = repository.find_all()
         latest_submissions = submissionRepository.findAllSubmissionByTeamId(team_id)
 
         challenge_status_list = []

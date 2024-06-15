@@ -24,10 +24,10 @@ from api.serializers.statistic import (
 )
 
 # Infra Repositories
-submissionRepository = SubmissionRepository(Submission)
-challengeRepository = ChallengeRepository(Challenge)
-teamRepository = TeamRepository(Team)
-roundRepository = RoundRepository(Round)
+submissionRepository: SubmissionRepository = SubmissionRepository(Submission)
+challengeRepository: ChallengeRepository = ChallengeRepository(Challenge)
+teamRepository: TeamRepository = TeamRepository(Team)
+roundRepository: RoundRepository = RoundRepository(Round)
 
 class TeamChallengeScoreStaticAPIView(APIView):
 
@@ -48,7 +48,7 @@ class TeamChallengeScoreStaticAPIView(APIView):
         team_id = request.query_params.get("team_id", None)
         # 如果 team_id 沒有被提供，則不過濾 Submission
         submissions = submissionRepository.findAllSubmissionQueryByTeamId(
-            teamId=team_id
+            team_id=team_id
         )
 
         # 使用 annotate 來計算每個 Challenge 的最高分
@@ -91,14 +91,14 @@ class TeamChallengeSubmissionStaticAPIView(APIView):
         team_id = request.query_params.get("team_id", None)
         # 如果 team_id 沒有被提供，則不過濾 Submission
         submissions = submissionRepository.findAllSubmissionQueryByTeamId(
-            teamId=team_id
+            team_id=team_id
         )
 
         result = []
-        for challenge in challengeRepository.findAll():
+        for challenge in challengeRepository.find_all():
             submission_count = (
                 submissionRepository.countSubmissionQueryByTeamIdFilterByChallenge(
-                    submissions=submissions, teamId=team_id, challenge=challenge
+                    submissions=submissions, team_id=team_id, challenge=challenge
                 )
             )
             result.append(
@@ -136,7 +136,7 @@ class TeamRoundScoreStatisticAPIView(APIView):
         team_id = request.query_params.get("team_id", None)
         # 如果 team_id 沒有被提供，則不過濾 Submission
         submissions = submissionRepository.findAllSubmissionQueryByTeamId(
-            teamId=team_id
+            team_id=team_id
         )
         # 使用 annotate 來計算每個 Challenge 的最高分
         highest_score = (
@@ -166,8 +166,8 @@ class StatisticAllTeamSingleRoundTotalScoreAPIView(APIView):
     )
     def get(self, request, round_id: int):
         try:
-            round = Round.objects.get(pk=round_id, is_valid=True)
-            challenges = Challenge.objects.filter(round_id=round)
+            round_instance = Round.objects.get(pk=round_id, is_valid=True)
+            challenges = Challenge.objects.filter(round_id=round_instance)
             data = []
             for team in Team.objects.all():
                 d = {
@@ -181,7 +181,7 @@ class StatisticAllTeamSingleRoundTotalScoreAPIView(APIView):
                     total_score = 0
                     highest_score = (
                         Submission.objects.filter(
-                            round=round, team=team, challenge=challenge
+                            round=round_instance, team=team, challenge=challenge
                         )
                         .values("challenge")
                         .annotate(max_score=Max("score"))
@@ -211,25 +211,25 @@ class StatisticAllTeamRoundTotalScoreAPIView(APIView):
         responses={200: StatisticAllTeamRoundTotalScoreResponseDTO(many=True)},
     )
     def get(self, request):
-        submissions = submissionRepository.findAll()
+        submissions = submissionRepository.find_all()
         data = []
-        for team in teamRepository.findAll():
+        for team in teamRepository.find_all():
             d = {
                 "team_id": team.id,
                 "team_name": team.name,
                 "round_id_list": [],
                 "total_score_list": [],
             }
-            for round in roundRepository.findAllValidRound():
+            for round_instance in roundRepository.findAllValidRound():
                 total_score = 0
                 highest_score = (
                     submissionRepository.getSubmissionHightestScoreByRoundAndTeam(
-                        submissions=submissions, round=round, team=team
+                        submissions=submissions, round=round_instance, team=team
                     )
                 )
                 for item in highest_score:
                     total_score += item["max_score"]
-                d["round_id_list"].append(round.id)
+                d["round_id_list"].append(round_instance.id)
                 d["total_score_list"].append(total_score)
             data.append(d)
 
@@ -253,7 +253,7 @@ class StatisticTop3TeamChallengeScore(APIView):
     )
     def get(self, request, challenge_id: int):
         submissions = submissionRepository.findAllSubmissionByChallengeId(
-            challengeId=challenge_id
+            challenge_id=challenge_id
         )
         # 使用 annotate 來計算每個 Team 的最高分
         highest_score = submissionRepository.getSubmissionHightestScoreWithFullRecord(
@@ -261,9 +261,9 @@ class StatisticTop3TeamChallengeScore(APIView):
         )
         # 將結果整理與輸出
         response = []
-        teamList = []
+        team_list = []
         for item in highest_score:
-            if item["team"] in teamList:
+            if item["team"] in team_list:
                 continue
             if len(response) == 3:
                 break
@@ -275,5 +275,5 @@ class StatisticTop3TeamChallengeScore(APIView):
             result["execute_time"] = item["execute_time"]
 
             response.append(result)
-            teamList.append(item["team"])
+            team_list.append(item["team"])
         return Response(response, status=status.HTTP_200_OK)

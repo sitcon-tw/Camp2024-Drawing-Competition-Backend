@@ -17,7 +17,7 @@ from api.serializers.team import (
     TeamListSerializer,
 )
 # Infra Repositories
-repository = TeamRepository(Team)
+repository: TeamRepository = TeamRepository(Team)
 
 class TeamAPIView(APIView):
 
@@ -28,7 +28,7 @@ class TeamAPIView(APIView):
         responses={200: TeamListSerializer(many=True)},
     )
     def get(self, request):
-        teams = repository.findAll()
+        teams = repository.find_all()
         serializer = TeamListSerializer(teams, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 

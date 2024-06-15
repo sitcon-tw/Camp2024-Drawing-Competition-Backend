@@ -10,41 +10,43 @@ class SubmissionRepository(Repository):
         return self.class1.objects.last()
 
     # 取得該 Team 最新一筆 Submission
-    def findNewestSubmissionByTeamId(self, teamId: int):
-        return self.class1.objects.filter(team__id=teamId).order_by("time").last()
+    def findNewestSubmissionByTeamId(self, team_id: int):
+        return self.class1.objects.filter(team__id=team_id).order_by("time").last()
 
     # 取得該 Team Challenge 依照時間排序的 Submission
-    def findAllSubmissionByChallengeIdAndTeamId(self, challengeId: int, teamId: int):
+    def findAllSubmissionByChallengeIdAndTeamId(self, challenge_id: int, team_id: int):
         return self.class1.objects.filter(
-            challenge__id=challengeId, team__id=teamId
+            challenge__id=challenge_id, team__id=team_id
         ).order_by("-time")
 
     # 取得該 Team Challenge 最高分 Submission
     def findMaxScoreSubmissionByChallengeIdAndTeamId(
-        self, challengeId: int, teamId: int
+        self, challenge_id: int, team_id: int
     ):
         return (
-            self.class1.objects.filter(challenge__id=challengeId, team__id=teamId)
+            self.class1.objects.filter(challenge__id=challenge_id, team__id=team_id)
             .order_by("-score")
             .first()
         )
 
     # 取得該 Challenge 所有 Submission
-    def findAllSubmissionByChallengeId(self, challengeId: int):
-        return self.class1.objects.filter(challenge__id=challengeId)
+    def findAllSubmissionByChallengeId(self, challenge_id: int):
+        return self.class1.objects.filter(challenge__id=challenge_id)
 
     # 取得該 Team 所有 Submission
-    def findAllSubmissionByTeamId(self, teamId: int):
-        return self.class1.objects.filter(team__id=teamId)
+    def findAllSubmissionByTeamId(self, team_id: int):
+        return self.class1.objects.filter(team__id=team_id)
 
     # 根據是否有 TeamId 取得所有 Submission 並依照 Challenge 和 反向 time 排序
-    def findAllSubmissionQueryByTeamIdOrderByChallengeAndReverseTime(self, teamId: int):
-        if teamId is None:
+    def findAllSubmissionQueryByTeamIdOrderByChallengeAndReverseTime(
+        self, team_id: int
+    ):
+        if team_id is None:
             latest_submissions = self.class1.objects.all().order_by(
                 "challenge", "-time"
             )
         else:
-            latest_submissions = self.class1.objects.filter(team__id=teamId).order_by(
+            latest_submissions = self.class1.objects.filter(team__id=team_id).order_by(
                 "challenge", "-time"
             )
         return latest_submissions
@@ -56,11 +58,11 @@ class SubmissionRepository(Repository):
         return submissions.filter(challenge=challenge).first()
 
     # 根據 TeamId 取得所有 Submission
-    def findAllSubmissionQueryByTeamId(self, teamId: int):
-        if teamId is None:
+    def findAllSubmissionQueryByTeamId(self, team_id: int):
+        if team_id is None:
             return self.class1.objects.all()
         else:
-            return self.class1.objects.filter(team__id=teamId)
+            return self.class1.objects.filter(team__id=team_id)
 
     # 過濾當前 submission 取出各 Challenge 最高分
     def getSubmissionHightestScore(self, submissions: BaseManager[Submission]):
@@ -100,24 +102,23 @@ class SubmissionRepository(Repository):
 
     # 計算 Submission 個數根據 TeamId 與 Challenge
     def countSubmissionQueryByTeamIdFilterByChallenge(
-        self, submissions: BaseManager[Submission], teamId: int, challenge: Challenge
+        self, submissions: BaseManager[Submission], team_id: int, challenge: Challenge
     ):
         submission_count = 0
-        if teamId is None:
+        if team_id is None:
             submission_count = submissions.filter(challenge=challenge).count()
         else:
             submission_count = submissions.filter(
-                challenge=challenge, team_id=teamId
+                challenge=challenge, team_id=team_id
             ).count()
         return submission_count
 
     # 取得 Submission 根據 TeamId 與 RoundId
     def findAllSubmissionQueryByTeamIdAndFilterByRoundId(
-        self, teamId: int, roundId: int
+        self, team_id: int, round_id: int
     ):
         if team_id is None:
-            submissions = Submission.objects.filter(round__id=roundId)
+            submissions = Submission.objects.filter(round__id=round_id)
         else:
-            team_id = int(teamId)
-            submissions = Submission.objects.filter(team_id=teamId, round__id=roundId)
+            submissions = Submission.objects.filter(team_id=team_id, round__id=round_id)
         return submissions
