@@ -33,7 +33,7 @@ class RoundListAPIView(APIView):  # 列出所有回合
             # 標註該 Round 已經進行過了
             round_instance.is_valid = True
             round_instance.save()
-            serializer = RoundChallengeSerializer(round)
+            serializer = RoundChallengeSerializer(round_instance)
             return Response(serializer.data)
         # 檢查是否所有回合結束
         elif not repository.checkValidRoundExists():
