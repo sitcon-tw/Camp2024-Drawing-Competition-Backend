@@ -8,7 +8,7 @@ def upload_to(instance, filename):
 class Challenge(models.Model):
     difficulty_option = [
         ("easy", "easy"),
-        ("normal", "normal"),
+        ("medium", "medium"),
         ("hard", "hard"),
     ]
 
