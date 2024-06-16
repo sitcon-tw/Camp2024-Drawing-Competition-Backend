@@ -176,7 +176,7 @@ class StatisticAllTeamSingleRoundTotalScoreAPIView(APIView):
                     "total_score": 0,
                     "score_list": [],
                 }
-
+                total_score = 0
                 for challenge in challenges:
                     total_score = 0
                     highest_score = (
