@@ -1,3 +1,4 @@
+import platform
 import subprocess
 import os
 from PIL import Image
@@ -13,7 +14,7 @@ def get_word_count(file_path):
 
 def linear_normalize(value, min_value, max_value):
     return (value - min_value) / (max_value - min_value)
-    
+
 def convert_ps_to_png(ps_file, png_file):
     # Ensure the output directory exists
     # Open the PostScript file and convert it to a PNG file
@@ -21,11 +22,11 @@ def convert_ps_to_png(ps_file, png_file):
     img.save(png_file)
 
 def judge_logic(image_url, result_path, word_count, execution_time):
-    
+
     # Open the two images
     image1 = Image.open(image_url).convert('L') # convert('L') converts an image to grayscale
     image2 = Image.open(result_path).convert('L')
-    
+
     # Resize images to the same size for comparison
     image1 = image1.resize((500, 500))
     image2 = image2.resize((500, 500))
@@ -34,8 +35,6 @@ def judge_logic(image_url, result_path, word_count, execution_time):
     # This will return a floating point number representing the similarity
     # 0 means the images are completely different
     # 1 means the images are identical
-
-    # similarity = Image.cmp(image1, image2)
 
     # Use the SSIM (Structural Similarity Index) to compare the two images
     image1_np = np.array(image1)
@@ -64,7 +63,7 @@ def judge_logic(image_url, result_path, word_count, execution_time):
     return total_score, similarity*100
 
 def run_code(code_path, image_url, result_path):
-    
+
     result_dir = os.path.dirname(result_path)
     ps_file = f"{result_dir}/temp.ps"
     # png_file = f"{result_dir}/{output_filename}.png"
@@ -76,14 +75,18 @@ def run_code(code_path, image_url, result_path):
     # Use check to raise an exception if the script fails
     start_time = time.time()
     try:
-        subprocess.run(['python3', code_path, ps_file], check=True)
+        # Detect Run Time OS
+        if platform.system() == "Windows":
+            subprocess.run(["python", code_path, ps_file], check=True)
+        else:
+            subprocess.run(["python3", code_path, ps_file], check=True)
     except subprocess.CalledProcessError as e:
         # Handle errors in the subprocess
         print(f"Error: {e}")
         return None
     end_time = time.time()
     execution_time = end_time - start_time
-    
+
     # check if the PostScript file was created
     if not os.path.exists(ps_file):
         return 0, 0, word_count, execution_time

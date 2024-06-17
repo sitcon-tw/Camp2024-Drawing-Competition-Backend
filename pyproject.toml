@@ -24,6 +24,9 @@ tk = "^0.1.0"
 Pillow-PIL = "^0.1dev"
 scikit-image = "^0.23.2"
 numpy = "^1.26.4"
+django-extensions = "^3.2.3"
+pyopenssl = "^24.1.0"
+werkzeug = "^3.0.3"
 
 
 [build-system]
