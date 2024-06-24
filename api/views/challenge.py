@@ -42,23 +42,14 @@ class ChallengeRetrieveSingleAPIView(APIView):
     @swagger_auto_schema(
         operation_summary="Get challenge by id",
         operation_description="Get Challenge by id",
-        manual_parameters=[
-            openapi.Parameter(
-                "pk",
-                openapi.IN_PATH,
-                description="The ID of the challenge",
-                type=openapi.TYPE_INTEGER,
-            )
-        ],
         responses={200: ChallengeTeamSubmissionSerializer(many=False)},
     )
-    def get(self, request, pk: int):
-        challenge = repository.find_by_id_with_round(pk=pk)
+    def get(self, request, id: int):
+        challenge = repository.find_by_id_with_round(pk=id)
         if challenge:
             return Response(
                 ChallengeGeneralSerializer(challenge).data, status=status.HTTP_200_OK
             )
-
         else:
             return Response(
                 {"error": "Challenge is not valid"}, status=status.HTTP_400_BAD_REQUEST
