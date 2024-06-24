@@ -44,8 +44,8 @@ class ChallengeRetrieveSingleAPIView(APIView):
         operation_description="Get Challenge by id",
         responses={200: ChallengeTeamSubmissionSerializer(many=False)},
     )
-    def get(self, request, id: int):
-        challenge = repository.find_by_id_with_round(pk=id)
+    def get(self, request, pk: int):
+        challenge = repository.find_by_id_with_round(pk=pk)
         if challenge:
             return Response(
                 ChallengeGeneralSerializer(challenge).data, status=status.HTTP_200_OK

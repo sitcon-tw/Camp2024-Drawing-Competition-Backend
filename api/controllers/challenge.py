@@ -10,7 +10,7 @@ urlpatterns = [
     # Challenge Routes
     path("", ChallengeAPIView.as_view(), name="challenge"),
     path(
-        "<int:id>/",
+        "<int:pk>/",
         ChallengeRetrieveSingleAPIView.as_view(),
         name="challenge-single-operate",
     ),
