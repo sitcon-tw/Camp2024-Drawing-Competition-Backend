@@ -67,6 +67,9 @@ class SubmissionAPIView(APIView):
         # TODO: Judge Answer
         code = serializer.data.get("code")
         code_path = f"media/code/{challenge_id}/{team_id}.py"
+        if os.path.isfile(code_path):
+            # Remove the file
+            os.remove(code_path)
         os.makedirs(os.path.dirname(code_path), exist_ok=True) # 建立資料夾
 
         with open (code_path, "w") as f:
@@ -74,6 +77,9 @@ class SubmissionAPIView(APIView):
 
         # print(f'code: {code}')
         result_path = f"media/result/{challenge_id}/{team_id}.png"
+        if os.path.isfile(result_path):
+            # Remove the file
+            os.remove(result_path)
         os.makedirs(os.path.dirname(result_path), exist_ok=True) # 建立資料夾
         score, similarity, word_count, execution_time = judge_submission(code_path, image_url, result_path)
         # Complete Judge
