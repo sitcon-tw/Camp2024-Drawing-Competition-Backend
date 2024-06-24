@@ -1,14 +1,15 @@
+import platform
 import subprocess
 import os
 from PIL import Image
 import time
-import platform
-import numpy as np
 from skimage.metrics import structural_similarity as ssim
+
 import cv2
 from sentence_transformers import SentenceTransformer, util
 from PIL import Image
 import imagehash
+import numpy as np
 
 def get_word_count(file_path):
     with open(file_path, 'r') as file:
@@ -179,7 +180,7 @@ def run_code(code_path, image_url, result_path):
             subprocess.run(["python3", code_path, ps_file], check=True)
     except subprocess.CalledProcessError as e:
         # Handle errors in the subprocess
-        print(f"Subprocess CalledProcessError: {e}")
+        print(f"Error: {e}")
         return None
     end_time = time.time()
     execution_time = end_time - start_time

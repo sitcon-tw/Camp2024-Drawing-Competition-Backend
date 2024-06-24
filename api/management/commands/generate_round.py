@@ -32,14 +32,14 @@ class Command(BaseCommand):
                 start_time = end_time + datetime.timedelta(minutes=ROUND_GAP_TIME)
                 end_time = start_time + datetime.timedelta(minutes=ROUND_PLAY_TIME)
 
-            round = Round.objects.create(
+            round_instance = Round.objects.create(
                 start_time=start_time, end_time=end_time, is_valid=False
             )
 
-            round.save()
+            round_instance.save()
 
             self.stdout.write(
                 self.style.SUCCESS(
-                    f"成功建立回合{round.pk}-開始時間{round.start_time}-結束時間{round.end_time}"
+                    f"成功建立回合{round_instance.pk}-開始時間{round_instance.start_time}-結束時間{round_instance.end_time}"
                 )
             )

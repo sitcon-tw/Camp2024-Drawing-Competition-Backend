@@ -8,13 +8,12 @@ def upload_to(instance, filename):
 class Challenge(models.Model):
     difficulty_option = [
         ("easy", "easy"),
-        ("normal", "normal"),
+        ("medium", "medium"),
         ("hard", "hard"),
     ]
 
     title = models.CharField(max_length=255, null=False, default="題目標題")
     description = models.TextField()
-    # image_url = models.CharField(max_length=255)
     image_url = models.ImageField(
         upload_to=upload_to,
         null=False,

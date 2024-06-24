@@ -2,6 +2,7 @@ import datetime
 import jwt
 
 from api.models import Team
+from api.repositories.team import TeamRepository
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -15,7 +16,8 @@ from api.serializers.team import (
     TeamAuthSerializer,
     TeamListSerializer,
 )
-
+# Infra Repositories
+repository: TeamRepository = TeamRepository(Team)
 
 class TeamAPIView(APIView):
 
@@ -26,7 +28,7 @@ class TeamAPIView(APIView):
         responses={200: TeamListSerializer(many=True)},
     )
     def get(self, request):
-        teams = Team.objects.all()
+        teams = repository.find_all()
         serializer = TeamListSerializer(teams, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -45,10 +47,14 @@ class TeamTokenAPIView(APIView):
                 type=openapi.TYPE_STRING,
             ),
         ],
+        responses={
+            200: TeamGeneralSerializer(many=False),
+            404: "Not Found",
+        },
     )
     def get(self, request, token: str):
         if token:
-            team = Team.objects.filter(token=token).first()
+            team = repository.getTeamByToken(token)
             if team:
                 return Response(
                     TeamGeneralSerializer(team).data, status=status.HTTP_200_OK
@@ -64,27 +70,6 @@ class TeamTokenAPIView(APIView):
 
 
 class TeamAuthAPIView(APIView):
-    @swagger_auto_schema(
-        operation_summary="Auth team",
-        operation_description="Auth team with token",
-        tags=["team"],
-        request_body=TeamAuthSerializer,
-        responses={200: TeamGeneralSerializer(many=False)},
-    )
-    def post(self, request):
-        data = request.data
-        serializer = TeamAuthSerializer(data=data)
-        team = Team.objects.filter(name=data["name"], token=data["token"]).first()
-        if team:
-            return Response(
-                {"status": True, "team": TeamGeneralSerializer(team).data},
-                status=status.HTTP_200_OK,
-            )
-        else:
-            return Response({"status": False, "team": None}, status=status.HTTP_200_OK)
-
-
-class TeamAuthAPIView(APIView):
 
     @swagger_auto_schema(
         operation_summary="Auth team",
@@ -94,8 +79,7 @@ class TeamAuthAPIView(APIView):
         responses={200: TeamAuthResponseSerializer(many=False)},
     )
     def post(self, request):
-        data = request.data
-        team = Team.objects.filter(token=data["token"]).first()
+        team = repository.getTeamByToken(request.data["token"])
         if team:
             # Generate a new access token
 

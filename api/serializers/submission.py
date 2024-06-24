@@ -17,11 +17,13 @@ class SubmissionCreateSerializer(serializers.ModelSerializer):
         read_only_fields = ("id",)
 
     def create(self, validated_data):
-        round = Challenge.objects.get(id=validated_data["challenge"].id).round_id
+        round_instance = Challenge.objects.get(
+            id=validated_data["challenge"].id
+        ).round_id
         return Submission.objects.create(
             code=validated_data["code"],
             status="doing",
             team=validated_data["team"],
-            round=round,
+            round=round_instance,
             challenge=validated_data["challenge"],
         )

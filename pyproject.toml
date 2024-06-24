@@ -27,7 +27,9 @@ numpy = "^1.26.4"
 opencv-python = "^4.10.0"
 sentence-transformers = "^3.0.1"
 ImageHash = "^4.3.1"
-
+django-extensions = "^3.2.3"
+pyopenssl = "^24.1.0"
+werkzeug = "^3.0.3"
 
 
 [build-system]
