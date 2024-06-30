@@ -31,6 +31,7 @@ django-extensions = "^3.2.3"
 pyopenssl = "^24.1.0"
 werkzeug = "^3.0.3"
 psycopg2-binary = "^2.9.9"
+gunicorn = "^22.0.0"
 
 
 [build-system]
