@@ -12,7 +12,8 @@ from rest_framework.views import APIView
 from api.serializers.submission import (
     SubmissionGeneralSerializer,
     SubmissionCreateSerializer,
-    SubmissonSubmitResponseSeriallizer
+    SubmissonSubmitResponseSeriallizer,
+    StoreSerializer
 )
 from api.repositories.submission import SubmissionRepository
 from api.repositories.challenge import ChallengeRepository
@@ -21,6 +22,23 @@ from judge import judge_submission
 # Infra Repositories
 repository: SubmissionRepository = SubmissionRepository(Submission)
 challengeRepository: ChallengeRepository = ChallengeRepository(Challenge)
+
+class StoreAPIView(APIView):
+    @swagger_auto_schema(
+        request_body=StoreSerializer,
+        response={200: SubmissionGeneralSerializer},
+    )
+    def post(self,pk:int,request):
+        serializer = StoreSerializer(data=request.data)
+        submission = repository.findSubmissionById(pk)
+        submission.score = serializer.data.get("score")
+        submission.fitness = serializer.data.get("fitness")
+        submission.word_count = serializer.data.get("word_count")
+        submission.execute_time = datetime.timedelta(seconds=serializer.data.get("execution_time"))
+        submission.stdout = serializer.data.get("stdout")
+        submission.stderr = serializer.data.get("stderr")
+        submission.save()
+        return Response(SubmissionGeneralSerializer(submission), status=status.HTTP_200_OK)
 
 class SubmissionAPIView(APIView):
 

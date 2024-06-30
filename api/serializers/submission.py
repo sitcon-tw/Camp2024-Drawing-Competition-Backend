@@ -46,3 +46,10 @@ class SubmissonSubmitResponseSeriallizer(serializers.ModelSerializer):
             challenge=validated_data["challenge"],
         )
     
+class StoreSerializer(serializers.Serializer):
+    score = serializers.IntegerField()
+    fitness = serializers.IntegerField()
+    word_count = serializers.IntegerField()
+    execution_time = serializers.IntegerField()
+    stdout = serializers.CharField()
+    stderr = serializers.CharField()
