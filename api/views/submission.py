@@ -68,6 +68,7 @@ class SubmissionAPIView(APIView):
         with open (code_path, "w") as f:
             f.write(code)
 
+        # result path is the path to the user drawing PNG file
         result_path = f"media/result/{challenge_id}/{team_id}.png"
         if os.path.isfile(result_path):
             # Remove the file
