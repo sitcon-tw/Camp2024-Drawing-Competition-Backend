@@ -1,19 +1,26 @@
 version: '3.3'
 services:
-  rabbitmq:
-    image: rabbitmq:3.9.10-management
-    hostname: rabbitmq
-    container_name: rabbitmq
-    environment:
-      - RABBITMQ_DEFAULT_VHOST=/
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
+  db:
+    image: postgres
     restart: always
-    command: "/bin/bash -c \"rabbitmq-plugins enable --offline rabbitmq_mqtt rabbitmq_web_mqtt rabbitmq_amqp1_0; rabbitmq-server\""
+    container_name: postgreSQL-Database
+    environment:
+      POSTGRES_DB: drawing
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
     ports:
-      - "5672:5672"
-      - "15672:15672"
-      - "1883:1883"
-      - "61613:61613"
-      - "15674:15674"
-      - "15675:15675"
+      - "127.0.0.1:5432:5432"
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgAdmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: camp@stcon.org
+      PGADMIN_DEFAULT_PASSWORD: 123456
+      PGADMIN_LISTEN_PORT: 80
+    ports:
+      - "9101:80"
+    links:
+      - "db:pgsql-server"
