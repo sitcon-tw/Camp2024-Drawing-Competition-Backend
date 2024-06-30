@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 from api.serializers.submission import (
     SubmissionGeneralSerializer,
     SubmissionCreateSerializer,
+    SubmissonSubmitResponseSeriallizer
 )
 from api.repositories.submission import SubmissionRepository
 from api.repositories.challenge import ChallengeRepository
@@ -25,7 +26,6 @@ class SubmissionAPIView(APIView):
 
     @swagger_auto_schema(
         request_body=SubmissionCreateSerializer,
-        responses={200: SubmissionGeneralSerializer},
     )
     def post(self, request):  # 上傳程式碼
         serializer = SubmissionCreateSerializer(data=request.data)
@@ -82,8 +82,28 @@ class SubmissionAPIView(APIView):
         submission.execute_time = datetime.timedelta(seconds=execution_time)
         submission.status = "success"
         submission.save()
+
+        response = SubmissonSubmitResponseSeriallizer()
+        response= {
+            "challenge":submission.challenge.id,
+            "code":submission.code,
+            "draw_image_url" :result_path,
+            "execution_time": execution_time,
+            "fitness": similarity,
+            "round":submission.challenge.round_id.id,
+            "score": score,
+            "status": "success",
+            "stdout":submission.stdout,
+            "stderr":submission.stderr,
+            "team":submission.team.id,
+            "time":submission.time,
+            "word_count": word_count,
+        }
+        print(f"Similarity {similarity}-Submission Fitness{submission.fitness}")
+        # print("Response Path",response.draw_image_url)
         return Response(
-            SubmissionGeneralSerializer(submission).data,
+            response,
+            # SubmissionGeneralSerializer(submission).data,
             status=status.HTTP_200_OK,
         )
 

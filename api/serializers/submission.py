@@ -27,3 +27,22 @@ class SubmissionCreateSerializer(serializers.ModelSerializer):
             round=round_instance,
             challenge=validated_data["challenge"],
         )
+class SubmissonSubmitResponseSeriallizer(serializers.ModelSerializer):
+    draw_image_url = serializers.CharField(allow_null=True)
+    class Meta:
+        model = Submission
+        fields = "__all__"
+        read_only_fields = ("id",)
+    
+    def create(self, validated_data):
+        round_instance = Challenge.objects.get(
+            id=validated_data["challenge"].id
+        ).round_id
+        return Submission.objects.create(
+            code=validated_data["code"],
+            status="doing",
+            team=validated_data["team"],
+            round=round_instance,
+            challenge=validated_data["challenge"],
+        )
+    
