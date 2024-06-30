@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "equipment-backend"
+name = "drawing-competition-backend"
 version = "0.1.0"
 description = ""
 authors = ["fan9704 <cxz123499@gmail.com>"]
