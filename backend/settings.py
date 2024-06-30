@@ -27,18 +27,23 @@ load_dotenv(find_dotenv())
 SECRET_KEY = os.environ.get("SECRET_KEY", "123456")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DEBUG", True)
+DEBUG = os.environ.get("DEBUG", False)
 ALLOWED_HOSTS = [
     "*",
 ]
 # CORS Settings
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_HEADERS = "*"
 CORS_ORIGIN_ALLOW_METHODS = "*"
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://drawing.sitcon.camp"
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://camp.mtkuo.space:2024",
 ]
 
 # Application definition
@@ -62,9 +67,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -203,11 +208,13 @@ DEFAULT_CHARSET = "utf-8"  # 'latin-1'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = "static/"
+# STATIC_URL = "static/"
 # Actual directory user files go to
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 MEDIA_URL = "/media/"
 
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATIC_URL = "static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -215,6 +222,6 @@ MEDIA_URL = "/media/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # HTTP Config
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+# SECURE_SSL_REDIRECT = False
+# SESSION_COOKIE_SECURE = True
+# CSRF_COOKIE_SECURE = True
