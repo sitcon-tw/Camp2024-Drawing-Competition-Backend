@@ -39,6 +39,7 @@ class Submission(models.Model):
         "Challenge", on_delete=models.CASCADE, verbose_name="挑戰"
     )
     round = models.ForeignKey("Round", on_delete=models.CASCADE, verbose_name="回合")
+    draw_image_url = models.TextField(default="", verbose_name="繪圖圖片連結")
 
     def __str__(self):
         return f"{self.team}-{self.time.time()}-{self.round}-吻合度:{self.fitness}"
