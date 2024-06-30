@@ -4,6 +4,11 @@ import os
 from PIL import Image
 import time
 from skimage.metrics import structural_similarity as ssim
+
+import cv2
+from sentence_transformers import SentenceTransformer, util
+from PIL import Image
+import imagehash
 import numpy as np
 
 def get_word_count(file_path):
@@ -21,51 +26,144 @@ def convert_ps_to_png(ps_file, png_file):
     img = Image.open(ps_file)
     img.save(png_file)
 
+def extract_object(image_path):
+    image = cv2.imread(image_path)
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    _, thresh = cv2.threshold(gray, 1, 255, cv2.THRESH_BINARY)
+
+    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    x, y, w, h = cv2.boundingRect(contours[0])
+
+    object_img = image[y:y+h, x:x+w]
+    return object_img
+
+def calculate_pixel_difference_similarity(image1_path, image2_path):
+    # Extract objects from the images
+    img1 = extract_object(image1_path)
+    img2 = extract_object(image2_path)
+    
+    # Convert images to grayscale
+    img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY).astype(np.int16)
+    img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY).astype(np.int16)
+
+    # Ensure the images have the same size for comparison
+    img1 = cv2.resize(img1, (500, 500))
+    img2 = cv2.resize(img2, (500, 500))
+
+    # Create a mask to ignore white pixels (value 255)
+    mask = (img2 != 255).astype(np.uint8)  # create mask with 0 where img2 is 255, and 1 otherwise
+
+    valid_pixel = 0
+    similar_pixel = 0
+    THRESHOLD = 20
+
+    for i in range(500):
+        for j in range(500):
+            if mask[i][j] == 0:  # if mask is 0, ignore this pixel
+                continue
+            valid_pixel += 1
+            if abs(img1[i][j] - img2[i][j]) <= THRESHOLD:
+                similar_pixel += 1
+    print('similar_pixel: ', similar_pixel)
+    pixel_similarity = similar_pixel / 500**2
+    return pixel_similarity
+
+def calculate_clip_similarity(model, image1_path, image2_path):
+    # Encode the images
+    original_image = Image.open(image1_path)
+    drawn_image = Image.open(image2_path)
+
+    encoded_images = model.encode([original_image, drawn_image], batch_size=2, convert_to_tensor=True)
+
+    # Compute cosine similarity
+    similarity = util.cos_sim(encoded_images[0], encoded_images[1]).item()
+
+    # Normalize similarity score to a range of 0 to 1
+    similarity = linear_normalize(similarity, 0, 1)
+
+    return similarity
 def judge_logic(image_url, result_path, word_count, execution_time):
 
-    # Open the two images
-    image1 = Image.open(image_url).convert('L') # convert('L') converts an image to grayscale
-    image2 = Image.open(result_path).convert('L')
+    pixel_similarity = calculate_pixel_difference_similarity(image_url, result_path)
+    print('origin pixel_similarity: ', pixel_similarity)
+    pixel_similarity = min(1, linear_normalize(pixel_similarity, 0, 0.025))
+    print('Loading CLIP Model...')
+    model = SentenceTransformer('clip-ViT-B-32')
+    # Calculate CLIP similarity
+    clip_similarity = calculate_clip_similarity(model, image_url, result_path)
+    print('origin clip_similarity: ', clip_similarity)
+    clip_similarity = max(0, linear_normalize(clip_similarity, 0.7, 1))
+    # Normalize percentage difference to a similarity score (0 to 1)
+    # Combine the similarity scores with equal weight
 
-    # Resize images to the same size for comparison
-    image1 = image1.resize((500, 500))
-    image2 = image2.resize((500, 500))
+    combined_similarity = 0.7 * pixel_similarity + 0.3 * clip_similarity
+    print('pixel_similarity: ', pixel_similarity)
+    print('clip_similarity: ', clip_similarity)
+    print('combined_similarity: ', combined_similarity)
+    min_word_count = 100
+    max_word_count = 600
 
-    # Compare the two images
-    # This will return a floating point number representing the similarity
-    # 0 means the images are completely different
-    # 1 means the images are identical
+    word_count_score = 30 * (1 - linear_normalize(word_count, min_word_count, max_word_count))
+    word_count_score = max(0, min(30, word_count_score))
 
-    # Use the SSIM (Structural Similarity Index) to compare the two images
-    image1_np = np.array(image1)
-    image2_np = np.array(image2)
-    similarity, _ = ssim(image1_np, image2_np, full=True) # range of SSIM is -1 to 1
-    similarity = linear_normalize(similarity, -1, 1)  # Normalize to a range of 0 to 1
-    # Normalized scores for word count and execution time
-    min_word_count = 100  # Example value, should be adjusted
-    max_word_count = 600  # Example value, should be adjusted
-    min_execution_time = 0  # Example value, should be adjusted
-    max_execution_time = 6.0  # Example value, should be adjusted
+    similarity_score = 70 * combined_similarity
+    total_score = similarity_score + word_count_score
 
-    # Normalize word count to a score out of 20
-    word_count_score = 20 * (1 - linear_normalize(word_count, min_word_count, max_word_count))
-    word_count_score = max(0, min(20, word_count_score))
+    # print(f"Percentage Difference: {percentage_diff}%")
+    print(f"Similarity score: {combined_similarity}, Word Count score: {word_count_score}\n\n")
+    return total_score, combined_similarity
 
-    # Normalize execution time to a score out of 20
-    execution_time_score = 20 * (1 - linear_normalize(execution_time, min_execution_time, max_execution_time))
-    execution_time_score = max(0, min(20, execution_time_score))
+# def judge_logic(image_url, result_path, word_count, execution_time):
+#     # Open the images
+#     # image1 = cv2.imread(image_url)
+#     # image2 = cv2.imread(result_path)
 
-    # Calculate total score
-    similarity_score = 60 * similarity  # 60% weight for similarity
-    total_score = similarity_score + word_count_score + execution_time_score
-    print(f"Similarity score: {similarity_score}, Word Count score: {word_count_score}, Execution Time score: {execution_time_score}\n\n")
-    # Return the similarity score
-    return total_score, similarity*100
+#     # # Ensure the images have the same size for comparison
+#     # image1 = cv2.resize(image1, (500, 500))
+#     # image2 = cv2.resize(image2, (500, 500))
+#     original_object = extract_object(image_url)
+#     drawn_object = extract_object(result_path)
+#     image1 = cv2.resize(original_object, (500, 500))
+#     image2 = cv2.resize(drawn_object, (500, 500))
+#     # Compare histograms for RGB channels
+#     print('image1: ', image1.shape)
+#     print('image2: ', image2.shape)
+#     hist_similarity = compare_histograms(image1, image2)
+
+#     # Convert images to grayscale for structural similarity comparison
+#     gray_image1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
+#     gray_image2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
+
+#     # Compute SSIM
+#     ssim_index, _ = ssim(gray_image1, gray_image2, full=True)
+#     ssim_index = linear_normalize(ssim_index, -1, 1)
+
+#     # Combine the similarity scores
+#     combined_similarity = 0.5 * hist_similarity + 0.5 * ssim_index
+
+#     # Normalize similarity score to a range of 0 to 1
+#     combined_similarity = linear_normalize(combined_similarity, 0, 1)
+
+#     min_word_count = 100
+#     max_word_count = 600
+
+#     word_count_score = 30 * (1 - linear_normalize(word_count, min_word_count, max_word_count))
+#     word_count_score = max(0, min(30, word_count_score))
+
+#     similarity_score = 70 * combined_similarity
+#     total_score = similarity_score + word_count_score
+
+#     print(f"Histogram Similarity: {hist_similarity}, SSIM: {ssim_index}")
+#     print(f"Similarity score: {similarity_score}, Word Count score: {word_count_score}\n\n")
+#     return total_score, combined_similarity
 
 def run_code(code_path, image_url, result_path):
 
     result_dir = os.path.dirname(result_path)
     ps_file = f"{result_dir}/temp.ps"
+    if os.path.isfile(ps_file):
+        # Remove the file
+        os.remove(ps_file)
     # png_file = f"{result_dir}/{output_filename}.png"
     # Ensure the result directory exists
     os.makedirs(result_dir, exist_ok=True)

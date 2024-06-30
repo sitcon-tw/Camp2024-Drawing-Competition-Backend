@@ -1,12 +1,12 @@
 [tool.poetry]
-name = "equipment-backend"
+name = "drawing-competition-backend"
 version = "0.1.0"
 description = ""
 authors = ["fan9704 <cxz123499@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.12"
 django = "^4.2.0"
 djangorestframework = "^3.14.0"
 drf-yasg = "^1.21.7"
@@ -24,6 +24,9 @@ tk = "^0.1.0"
 Pillow-PIL = "^0.1dev"
 scikit-image = "^0.23.2"
 numpy = "^1.26.4"
+opencv-python = "^4.10.0"
+sentence-transformers = "^3.0.1"
+ImageHash = "^4.3.1"
 django-extensions = "^3.2.3"
 pyopenssl = "^24.1.0"
 werkzeug = "^3.0.3"
