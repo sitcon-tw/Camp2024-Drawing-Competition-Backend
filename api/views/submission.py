@@ -56,10 +56,16 @@ class SubmissionAPIView(APIView):
         # Create Submission
         serializer.save()
         submission = repository.getLastSubmission()
+        submission_id = submission.id
         image_url = challenge.image_url.url
         # Judge Answer
         code = serializer.data.get("code")
-        code_path = f"media/code/{challenge_id}/{team_id}.py"
+
+        drawing_template_path = f"judge_dir/drawing_code_template.py"
+        main_drawing_path = f"media/code/main_drawing_template.py"
+        template_revise_path = f"media/code/drawing_{submission_id}.py"
+        
+        code_path = f"media/code/{submission_id}.py"
         if os.path.isfile(code_path):
             # Remove the file
             os.remove(code_path)
@@ -67,14 +73,17 @@ class SubmissionAPIView(APIView):
 
         with open (code_path, "w") as f:
             f.write(code)
-
+        
         # result path is the path to the user drawing PNG file
-        result_path = f"media/result/{challenge_id}/{team_id}.png"
+        result_path = f"media/result/{challenge_id}/{submission_id}.png"
         if os.path.isfile(result_path):
             # Remove the file
             os.remove(result_path)
         os.makedirs(os.path.dirname(result_path), exist_ok=True) # 建立資料夾
-        score, similarity, word_count, execution_time = judge_submission(code_path, image_url, result_path)
+        score, similarity, word_count, execution_time = judge_submission(
+                        code_path, image_url, result_path, team_id, 
+                        drawing_template_path, main_drawing_path, 
+                        template_revise_path, submission_id)
         # Complete Judge
         print(f'score: {score}, similarity: {similarity}, word_count: {word_count}, execution_time: {execution_time}\n\n')
         submission.score = score

@@ -1,16 +1,15 @@
-import platform
-import subprocess
-import os
-from PIL import Image
+import sys
 import time
-from skimage.metrics import structural_similarity as ssim
-
+import os
 import cv2
-from sentence_transformers import SentenceTransformer, util
-from PIL import Image
-import imagehash
+import requests
+import subprocess
+
 import numpy as np
-import datetime
+import turtle as turtle
+
+from PIL import Image
+from sentence_transformers import SentenceTransformer, util
 
 def get_word_count(file_path):
     with open(file_path, 'r') as file:
@@ -26,6 +25,7 @@ def convert_ps_to_png(ps_file, png_file):
     # Open the PostScript file and convert it to a PNG file
     img = Image.open(ps_file)
     img.save(png_file)
+
 
 def extract_object(image_path):
     image = cv2.imread(image_path)
@@ -115,64 +115,56 @@ def judge_logic(image_url, result_path, word_count, execution_time):
     # print(f"Percentage Difference: {percentage_diff}%")
     print(f"Similarity score: {combined_similarity}, Word Count score: {word_count_score}\n\n")
     return total_score, combined_similarity
+if __name__ == '__main__':
+    start_time = time.time()
+    ps_file = sys.argv[1]  # Accept output path as a command-line argument
+    submission_id = sys.argv[2]
+    code_path = sys.argv[3]
+    drawing_path = sys.argv[4]
+    result_path = sys.argv[5]
+    image_url = sys.argv[6]
+    start_time = time.time()
+    result = subprocess.run(["python3", drawing_path, ps_file], 
+                            check=True, capture_output=True, text=True, timeout=30)
+    # Get stdout and stderr
+    stdout = result.stdout
+    stderr = result.stderr
+    # Check if there were any errors
+    if result.returncode != 0:
+        print("Error occurred:", stderr)
+    else:
+        print("Output:", stdout)
 
-def copy_and_modify_template(judge_template_path, template_revise_path, 
-                                        code_path):
-    code_filename = os.path.basename(code_path)
-    # Construct the import line
-    import_line = f"from {code_filename .replace('.py', '')} import drawing\n"
-
-    # Read the original template
-    with open(judge_template_path, 'r') as template_file:
-        template_content = template_file.read()
-
-    # Create the new content with the import line at the beginning
-    new_content = import_line + template_content
-    # new_content = template_content
-    # Write the new content to the destination path
-    with open(template_revise_path, 'w') as new_template_file:
-        new_template_file.write(new_content)
-
-# At here, change the main_template code and drawing template code
-
-def run_code(code_path, image_url, result_path, team_id, 
-                drawing_template_path, main_drawing_path, 
-                template_revise_path, submission_id):
-
-    result_dir = os.path.dirname(result_path)
-    ps_file = f"{result_dir}/{submission_id}.ps"
-    if os.path.isfile(ps_file):
-        # Remove the file
-        os.remove(ps_file)
-    # png_file = f"{result_dir}/{output_filename}.png"
-    # Ensure the result directory exists
-    os.makedirs(result_dir, exist_ok=True)
+    end_time = time.time()
+    word_count = get_word_count(drawing_path)
+    # turtle.done() # Uncomment this line if you want to keep the turtle graphics window open
     
-    copy_and_modify_template(drawing_template_path, template_revise_path, 
-                                        code_path)
-    # Run the provided Python script to generate the PostScript file
-    # Use check to raise an exception if the script fails
-    try:
-        subprocess.run(["python3", main_drawing_path, ps_file, 
-                            submission_id, code_path, template_revise_path, 
-                            result_path, image_url], check=False)
-    except subprocess.CalledProcessError as e:
-        # Handle errors in the subprocess
-        print(f"Error: {e}")
-        return 
-    
-
-def judge_submission(code_path, image_url, result_path, team_id, 
-                        drawing_template_path, main_drawing_path, 
-                        template_revise_path, submission_id):
-
-    image_url = f".{image_url}"
-    print(f"image_url: {image_url}\n\n")
-    run_code(code_path, image_url, result_path, team_id, 
-                drawing_template_path, main_drawing_path, 
-                template_revise_path, submission_id)
-
-    # Here you would implement the logic to judge the PNG file and assign a score.
-    # For demonstration, let's assume the score is always 100.
-
-
+    execution_time = end_time - start_time
+    # check if the PostScript file was created
+    if not os.path.exists(ps_file):
+        post_data = {
+            "score": 0,
+            "fitness": 0,
+            "word_count": word_count,
+            "execution_time": execution_time,
+            "stdout": stdout,
+            "stderr": stderr
+        }
+        res = requests.post(
+            f"https://camp.mtkuo.space:2024/api/submission/{submission_id}/",
+            json=post_data)
+    else:
+        convert_ps_to_png(ps_file, result_path)
+        score, similarity = judge_logic(image_url, result_path, word_count, execution_time)
+        similarity = similarity * 100 # convert percentage to score
+        post_data = {
+            "score": score,
+            "fitness": similarity,
+            "word_count": word_count,
+            "execution_time": execution_time,
+            "stdout": stdout,
+            "stderr": stderr
+        }
+        res = requests.post(
+            f"https://camp.mtkuo.space:2024/api/submission/{submission_id}/",
+            json=post_data)
