@@ -4,6 +4,7 @@ from api.views.submission import (
     SubmissionChallengeTeamAPIView,
     SubmissionChallengeTeamMaxAPIView,
     SubmissionTeamAPIView,
+    StoreAPIView,
 )
 
 urlpatterns = [
@@ -24,4 +25,5 @@ urlpatterns = [
         SubmissionChallengeTeamMaxAPIView.as_view(),
         name="max-submission-challenge-team",
     ),
+    path("store/<int:id>/",StoreAPIView.as_view(),name="store")
 ]

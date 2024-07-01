@@ -12,6 +12,8 @@ from rest_framework.views import APIView
 from api.serializers.submission import (
     SubmissionGeneralSerializer,
     SubmissionCreateSerializer,
+    SubmissonSubmitResponseSeriallizer,
+    StoreSerializer
 )
 from api.repositories.submission import SubmissionRepository
 from api.repositories.challenge import ChallengeRepository
@@ -21,11 +23,27 @@ from judge import judge_submission
 repository: SubmissionRepository = SubmissionRepository(Submission)
 challengeRepository: ChallengeRepository = ChallengeRepository(Challenge)
 
+class StoreAPIView(APIView):
+    @swagger_auto_schema(
+        request_body=StoreSerializer,
+        response={200: SubmissionGeneralSerializer},
+    )
+    def post(self,pk:int,request):
+        serializer = StoreSerializer(data=request.data)
+        submission = repository.findSubmissionById(pk)
+        submission.score = serializer.data.get("score")
+        submission.fitness = serializer.data.get("fitness")
+        submission.word_count = serializer.data.get("word_count")
+        submission.execute_time = datetime.timedelta(seconds=serializer.data.get("execution_time"))
+        submission.stdout = serializer.data.get("stdout")
+        submission.stderr = serializer.data.get("stderr")
+        submission.save()
+        return Response(SubmissionGeneralSerializer(submission), status=status.HTTP_200_OK)
+
 class SubmissionAPIView(APIView):
 
     @swagger_auto_schema(
         request_body=SubmissionCreateSerializer,
-        responses={200: SubmissionGeneralSerializer},
     )
     def post(self, request):  # 上傳程式碼
         serializer = SubmissionCreateSerializer(data=request.data)
@@ -81,9 +99,30 @@ class SubmissionAPIView(APIView):
         submission.word_count = word_count
         submission.execute_time = datetime.timedelta(seconds=execution_time)
         submission.status = "success"
+        submission.draw_image_url = result_path
         submission.save()
+
+        response = SubmissonSubmitResponseSeriallizer()
+        response= {
+            "challenge":submission.challenge.id,
+            "code":submission.code,
+            "draw_image_url" :result_path,
+            "execution_time": execution_time,
+            "fitness": similarity,
+            "round":submission.challenge.round_id.id,
+            "score": score,
+            "status": "success",
+            "stdout":submission.stdout,
+            "stderr":submission.stderr,
+            "team":submission.team.id,
+            "time":submission.time,
+            "word_count": word_count,
+        }
+        print(f"Similarity {similarity}-Submission Fitness{submission.fitness}")
+        # print("Response Path",response.draw_image_url)
         return Response(
-            SubmissionGeneralSerializer(submission).data,
+            response,
+            # SubmissionGeneralSerializer(submission).data,
             status=status.HTTP_200_OK,
         )
 
