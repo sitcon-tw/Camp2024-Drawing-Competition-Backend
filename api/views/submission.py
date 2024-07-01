@@ -99,6 +99,7 @@ class SubmissionAPIView(APIView):
         submission.word_count = word_count
         submission.execute_time = datetime.timedelta(seconds=execution_time)
         submission.status = "success"
+        submission.draw_image_url = result_path
         submission.save()
 
         response = SubmissonSubmitResponseSeriallizer()
