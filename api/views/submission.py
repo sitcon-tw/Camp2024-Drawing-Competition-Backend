@@ -95,7 +95,7 @@ class SubmissionAPIView(APIView):
         # Complete Judge
         print(f'score: {score}, similarity: {similarity}, word_count: {word_count}, execution_time: {execution_time}\n\n')
         submission.score = score
-        submission.fitness = similarity
+        submission.fitness = similarity *100
         submission.word_count = word_count
         submission.execute_time = datetime.timedelta(seconds=execution_time)
         submission.status = "success"
@@ -108,7 +108,7 @@ class SubmissionAPIView(APIView):
             "code":submission.code,
             "draw_image_url" :result_path,
             "execution_time": execution_time,
-            "fitness": similarity,
+            "fitness": similarity*100,
             "round":submission.challenge.round_id.id,
             "score": score,
             "status": "success",
@@ -118,7 +118,7 @@ class SubmissionAPIView(APIView):
             "time":submission.time,
             "word_count": word_count,
         }
-        print(f"Similarity {similarity}-Submission Fitness{submission.fitness}")
+        print(f"Similarity {similarity*100}-Submission Fitness{submission.fitness}")
         # print("Response Path",response.draw_image_url)
         return Response(
             response,
