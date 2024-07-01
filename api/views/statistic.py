@@ -273,6 +273,7 @@ class StatisticTop3TeamChallengeScore(APIView):
             result["max_score"] = item["max_score"]
             result["fitness"] = item["fitness"]
             result["execute_time"] = item["execute_time"]
+            result["word_count"] = item["word_count"]
 
             response.append(result)
             team_list.append(item["team"])
