@@ -36,6 +36,8 @@ class StoreAPIView(APIView):
         submission.execute_time = datetime.timedelta(seconds=request.data.get("execution_time"))
         submission.stdout = request.data.get("stdout")
         submission.stderr = request.data.get("stderr")
+        submission.status = "success"
+        submission.draw_image_url = f"/media/result/{submission.id}.png"
         submission.save()
         return Response(SubmissionGeneralSerializer(submission).data, status=status.HTTP_200_OK)
 
@@ -95,7 +97,7 @@ class SubmissionAPIView(APIView):
             f.write(code)
         
         # result path is the path to the user drawing PNG file
-        result_path = f"media/result/{challenge_id}/{submission_id}.png"
+        result_path = f"media/result/{submission_id}.png"
         if os.path.isfile(result_path):
             # Remove the file
             os.remove(result_path)

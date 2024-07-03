@@ -10,6 +10,7 @@ from sentence_transformers import SentenceTransformer, util
 from PIL import Image
 import imagehash
 import numpy as np
+import datetime
 
 def get_word_count(file_path):
     with open(file_path, 'r') as file:
@@ -100,107 +101,120 @@ def judge_logic(image_url, result_path, word_count, execution_time):
     print('pixel_similarity: ', pixel_similarity)
     print('clip_similarity: ', clip_similarity)
     print('combined_similarity: ', combined_similarity)
-    min_word_count = 100
-    max_word_count = 600
+    min_word_count = 50
+    max_word_count = 300
 
-    word_count_score = 30 * (1 - linear_normalize(word_count, min_word_count, max_word_count))
-    word_count_score = max(0, min(30, word_count_score))
+    word_count_score = 25 * (1 - max(0, linear_normalize(word_count, min_word_count, max_word_count)))
+    word_count_score = max(0, min(25, word_count_score))
 
-    similarity_score = 70 * combined_similarity
-    total_score = similarity_score + word_count_score
-
+    similarity_score = 75 * combined_similarity
+    if similarity_score > 30:
+        total_score = similarity_score + word_count_score
+    else:
+        total_score = 0
     # print(f"Percentage Difference: {percentage_diff}%")
     print(f"Similarity score: {combined_similarity}, Word Count score: {word_count_score}\n\n")
     return total_score, combined_similarity
 
-# def judge_logic(image_url, result_path, word_count, execution_time):
-#     # Open the images
-#     # image1 = cv2.imread(image_url)
-#     # image2 = cv2.imread(result_path)
+def copy_and_modify_template(judge_template_path, template_revise_path, 
+                                        code_path):
+    code_filename = os.path.basename(code_path)
+    # Construct the import line
+    import_line = f"from {code_filename .replace('.py', '')} import drawing\n"
 
-#     # # Ensure the images have the same size for comparison
-#     # image1 = cv2.resize(image1, (500, 500))
-#     # image2 = cv2.resize(image2, (500, 500))
-#     original_object = extract_object(image_url)
-#     drawn_object = extract_object(result_path)
-#     image1 = cv2.resize(original_object, (500, 500))
-#     image2 = cv2.resize(drawn_object, (500, 500))
-#     # Compare histograms for RGB channels
-#     print('image1: ', image1.shape)
-#     print('image2: ', image2.shape)
-#     hist_similarity = compare_histograms(image1, image2)
+    # Read the original template
+    with open(judge_template_path, 'r') as template_file:
+        template_content = template_file.read()
 
-#     # Convert images to grayscale for structural similarity comparison
-#     gray_image1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
-#     gray_image2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
+    # Create the new content with the import line at the beginning
+    new_content = import_line + template_content
+    # new_content = template_content
+    # Write the new content to the destination path
+    with open(template_revise_path, 'w') as new_template_file:
+        new_template_file.write(new_content)
 
-#     # Compute SSIM
-#     ssim_index, _ = ssim(gray_image1, gray_image2, full=True)
-#     ssim_index = linear_normalize(ssim_index, -1, 1)
+# At here, change the main_template code and drawing template code
 
-#     # Combine the similarity scores
-#     combined_similarity = 0.5 * hist_similarity + 0.5 * ssim_index
-
-#     # Normalize similarity score to a range of 0 to 1
-#     combined_similarity = linear_normalize(combined_similarity, 0, 1)
-
-#     min_word_count = 100
-#     max_word_count = 600
-
-#     word_count_score = 30 * (1 - linear_normalize(word_count, min_word_count, max_word_count))
-#     word_count_score = max(0, min(30, word_count_score))
-
-#     similarity_score = 70 * combined_similarity
-#     total_score = similarity_score + word_count_score
-
-#     print(f"Histogram Similarity: {hist_similarity}, SSIM: {ssim_index}")
-#     print(f"Similarity score: {similarity_score}, Word Count score: {word_count_score}\n\n")
-#     return total_score, combined_similarity
-
-def run_code(code_path, image_url, result_path):
+def run_code(code_path, image_url, result_path, team_id, 
+                drawing_template_path, main_drawing_path, 
+                template_revise_path, submission_id):
 
     result_dir = os.path.dirname(result_path)
-    ps_file = f"{result_dir}/temp.ps"
+    ps_file = f"{result_dir}/{submission_id}.ps"
     if os.path.isfile(ps_file):
         # Remove the file
         os.remove(ps_file)
     # png_file = f"{result_dir}/{output_filename}.png"
     # Ensure the result directory exists
     os.makedirs(result_dir, exist_ok=True)
-
-    word_count = get_word_count(code_path)
+    
+    copy_and_modify_template(drawing_template_path, template_revise_path, 
+                                        code_path)
+    print(f'template revise path: {template_revise_path}')
     # Run the provided Python script to generate the PostScript file
     # Use check to raise an exception if the script fails
-    start_time = time.time()
     try:
-        # Detect Run Time OS
-        if platform.system() == "Windows":
-            subprocess.run(["python", code_path, ps_file], check=True)
-        else:
-            subprocess.run(["python3", code_path, ps_file], check=True)
+        print("MAINDRAWING",main_drawing_path,ps_file,submission_id, code_path,template_revise_path,result_path,image_url,sep=" ")
+        p=subprocess.Popen([
+            "python3", 
+            str(main_drawing_path), 
+            str(ps_file), 
+            str(submission_id), 
+            str(code_path), 
+            str(template_revise_path), 
+            str(result_path), 
+            str(image_url)
+        ])
+     
     except subprocess.CalledProcessError as e:
-        # Handle errors in the subprocess
         print(f"Error: {e}")
-        return None
-    end_time = time.time()
-    execution_time = end_time - start_time
+        return
+    # try:
+    #     process = subprocess.Popen([
+    #         "python3", 
+    #         main_drawing_path, 
+    #         ps_file, 
+    #         str(submission_id), 
+    #         code_path, 
+    #         template_revise_path, 
+    #         result_path, 
+    #         image_url
+    #     ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
-    # check if the PostScript file was created
-    if not os.path.exists(ps_file):
-        return 0, 0, word_count, execution_time
+    #     print("Main drawing started, continuing with other tasks...")
+        
+    #     # Optionally, you can check on the process or wait for it to complete later
+    #     # For example, to wait for the process to complete and capture output:
+    #     stdout, stderr = process.communicate(timeout=30)  # Adjust the timeout as needed
 
-    convert_ps_to_png(ps_file, result_path)
-    score, similarity = judge_logic(image_url, result_path, word_count, execution_time)
-    # Return the path to the generated PNG file
-    return score, similarity, word_count, execution_time
+    #     if process.returncode == 0:
+    #         print("Main drawing completed successfully")
+    #         print(f"Output: {stdout}")
+    #     else:
+    #         print(f"Main drawing failed with return code {process.returncode}")
+    #         print(f"Error: {stderr}")
 
-def judge_submission(code_path, image_url, result_path):
+    # except subprocess.TimeoutExpired:
+    #     process.kill()
+    #     stdout, stderr = process.communicate()
+    #     print("Main drawing timed out and was killed")
+    #     print(f"Output: {stdout}")
+    #     print(f"Error: {stderr}")
+    # except subprocess.CalledProcessError as e:
+    #     print(f"Main drawing failed: {e}")
+    
+
+def judge_submission(code_path, image_url, result_path, team_id, 
+                        drawing_template_path, main_drawing_path, 
+                        template_revise_path, submission_id):
 
     image_url = f".{image_url}"
     print(f"image_url: {image_url}\n\n")
-    score, similarity, word_count, execution_time = run_code(code_path, image_url, result_path)
+    
+    run_code(code_path, image_url, result_path, team_id, 
+                drawing_template_path, main_drawing_path, 
+                template_revise_path, submission_id)
 
     # Here you would implement the logic to judge the PNG file and assign a score.
     # For demonstration, let's assume the score is always 100.
 
-    return score, similarity, word_count, execution_time
