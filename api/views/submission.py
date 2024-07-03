@@ -28,22 +28,24 @@ class StoreAPIView(APIView):
         request_body=StoreSerializer,
         response={200: SubmissionGeneralSerializer},
     )
-    def post(self,pk:int,request):
-        serializer = StoreSerializer(data=request.data)
-        submission = repository.findSubmissionById(pk)
-        submission.score = serializer.data.get("score")
-        submission.fitness = serializer.data.get("fitness")
-        submission.word_count = serializer.data.get("word_count")
-        submission.execute_time = datetime.timedelta(seconds=serializer.data.get("execution_time"))
-        submission.stdout = serializer.data.get("stdout")
-        submission.stderr = serializer.data.get("stderr")
+    def post(self,request,id:int):
+        submission = repository.get_by_id(id)
+        submission.score = request.data.get("score")
+        submission.fitness = request.data.get("fitness")
+        submission.word_count = request.data.get("word_count")
+        submission.execute_time = datetime.timedelta(seconds=request.data.get("execution_time"))
+        submission.stdout = request.data.get("stdout")
+        submission.stderr = request.data.get("stderr")
         submission.save()
-        return Response(SubmissionGeneralSerializer(submission), status=status.HTTP_200_OK)
+        return Response(SubmissionGeneralSerializer(submission).data, status=status.HTTP_200_OK)
+
+
 
 class SubmissionAPIView(APIView):
 
     @swagger_auto_schema(
         request_body=SubmissionCreateSerializer,
+        # responses={200: SubmissionGeneralSerializer},
     )
     def post(self, request):  # 上傳程式碼
         serializer = SubmissionCreateSerializer(data=request.data)
@@ -74,10 +76,16 @@ class SubmissionAPIView(APIView):
         # Create Submission
         serializer.save()
         submission = repository.getLastSubmission()
+        submission_id = submission.id
         image_url = challenge.image_url.url
         # Judge Answer
         code = serializer.data.get("code")
-        code_path = f"media/code/{challenge_id}/{team_id}.py"
+
+        drawing_template_path = f"judge_dir/drawing_code_template.py"
+        main_drawing_path = f"judge_dir/main_drawing.py"
+        template_revise_path = f"media/code/drawing_{submission_id}.py"
+        
+        code_path = f"media/code/submission_{submission_id}.py"
         if os.path.isfile(code_path):
             # Remove the file
             os.remove(code_path)
@@ -85,47 +93,35 @@ class SubmissionAPIView(APIView):
 
         with open (code_path, "w") as f:
             f.write(code)
-
-        result_path = f"media/result/{challenge_id}/{team_id}.png"
+        
+        # result path is the path to the user drawing PNG file
+        result_path = f"media/result/{challenge_id}/{submission_id}.png"
         if os.path.isfile(result_path):
             # Remove the file
             os.remove(result_path)
         os.makedirs(os.path.dirname(result_path), exist_ok=True) # 建立資料夾
-        score, similarity, word_count, execution_time = judge_submission(code_path, image_url, result_path)
+        judge_submission(
+            code_path, image_url, result_path, team_id, 
+            drawing_template_path, main_drawing_path, 
+            template_revise_path, submission_id)
         # Complete Judge
-        print(f'score: {score}, similarity: {similarity}, word_count: {word_count}, execution_time: {execution_time}\n\n')
-        submission.score = score
-        submission.fitness = similarity *100
-        submission.word_count = word_count
-        submission.execute_time = datetime.timedelta(seconds=execution_time)
-        submission.status = "success"
-        submission.draw_image_url = result_path
-        submission.save()
-
+        # print(f'score: {score}, similarity: {similarity}, word_count: {word_count}, execution_time: {execution_time}\n\n')
         response = SubmissonSubmitResponseSeriallizer()
         response= {
             "challenge":submission.challenge.id,
             "code":submission.code,
             "draw_image_url" :result_path,
-            "execution_time": execution_time,
-            "fitness": similarity*100,
             "round":submission.challenge.round_id.id,
-            "score": score,
             "status": "success",
-            "stdout":submission.stdout,
-            "stderr":submission.stderr,
             "team":submission.team.id,
             "time":submission.time,
-            "word_count": word_count,
         }
-        print(f"Similarity {similarity*100}-Submission Fitness{submission.fitness}")
-        # print("Response Path",response.draw_image_url)
+        submission.save()
         return Response(
             response,
             # SubmissionGeneralSerializer(submission).data,
             status=status.HTTP_200_OK,
         )
-
 
 class SubmissionChallengeTeamAPIView(APIView):
 
