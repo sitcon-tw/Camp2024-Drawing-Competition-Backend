@@ -11,6 +11,9 @@ import turtle as turtle
 from PIL import Image
 from sentence_transformers import SentenceTransformer, util
 
+def sigmoid(x, k=0.24):
+    return 100 / (1 + np.exp(-k * (x - 78)))
+
 def get_word_count(file_path):
     with open(file_path, 'r') as file:
         content = file.read()
@@ -114,6 +117,8 @@ def judge_logic(image_url, result_path, word_count, execution_time):
         total_score = 0
     # print(f"Percentage Difference: {percentage_diff}%")
     print(f"Similarity score: {combined_similarity}, Word Count score: {word_count_score}\n\n")
+    total_score = round(sigmoid(total_score), 2) # limit sigmoid value to 2 decimal places
+    print(f"Total Score: {total_score}")
     return total_score, combined_similarity
 if __name__ == '__main__':
     start_time = time.time()
