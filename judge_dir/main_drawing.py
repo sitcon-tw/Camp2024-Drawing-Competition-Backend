@@ -40,9 +40,10 @@ def extract_object(image_path):
 
 def calculate_pixel_difference_similarity(image1_path, image2_path):
     # Extract objects from the images
-    img1 = extract_object(image1_path)
-    img2 = extract_object(image2_path)
-    
+    # img1 = extract_object(image1_path)
+    # img2 = extract_object(image2_path)
+    img1 = cv2.imread(image1_path)
+    img2 = cv2.imread(image2_path)
     # Convert images to grayscale
     img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY).astype(np.int16)
     img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY).astype(np.int16)
@@ -56,8 +57,8 @@ def calculate_pixel_difference_similarity(image1_path, image2_path):
 
     valid_pixel = 0
     similar_pixel = 0
-    THRESHOLD = 20
-
+    THRESHOLD = 10
+    # total_pixel = 0
     for i in range(500):
         for j in range(500):
             if mask[i][j] == 0:  # if mask is 0, ignore this pixel
@@ -66,7 +67,7 @@ def calculate_pixel_difference_similarity(image1_path, image2_path):
             if abs(img1[i][j] - img2[i][j]) <= THRESHOLD:
                 similar_pixel += 1
     print('similar_pixel: ', similar_pixel)
-    pixel_similarity = similar_pixel / 500**2
+    pixel_similarity = similar_pixel / valid_pixel
     return pixel_similarity
 
 def calculate_clip_similarity(model, image1_path, image2_path):
@@ -87,7 +88,7 @@ def judge_logic(image_url, result_path, word_count, execution_time):
 
 
     pixel_similarity = calculate_pixel_difference_similarity(image_url, result_path)
-    print('origin pixel_similarity: ', pixel_similarity)
+    # print('origin pixel_similarity: ', pixel_similarity)
     pixel_similarity = min(1, linear_normalize(pixel_similarity, 0, 0.025))
     print('Loading CLIP Model...')
     model = SentenceTransformer('clip-ViT-B-32')
@@ -106,7 +107,7 @@ def judge_logic(image_url, result_path, word_count, execution_time):
     max_word_count = 300
 
     word_count_score = 25 * (1 - max(0, linear_normalize(word_count, min_word_count, max_word_count)))
-    word_count_score = max(0, min(25, word_count_score))
+    # word_count_score = max(0, min(25, word_count_score))
 
     similarity_score = 75 * combined_similarity
     if similarity_score > 10:
@@ -139,7 +140,7 @@ if __name__ == '__main__':
         print("Output:", stdout)
 
     end_time = time.time()
-    word_count = get_word_count(drawing_path)
+    word_count = get_word_count(code_path)
     # turtle.done() # Uncomment this lin    e if you want to keep the turtle graphics window open
     
     execution_time = end_time - start_time

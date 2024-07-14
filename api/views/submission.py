@@ -53,7 +53,7 @@ class SubmissionAPIView(APIView):
         serializer = SubmissionCreateSerializer(data=request.data)
         now = datetime.datetime.now()
         serializer.is_valid(raise_exception=True)
-        print(f'request data: {request.data}\n\n\n')
+        # print(f'request data: {request.data}\n\n\n')
 
         # Retrieve the challenge object
         challenge_id = serializer.validated_data["challenge"].id
@@ -80,6 +80,7 @@ class SubmissionAPIView(APIView):
         submission = repository.getLastSubmission()
         submission_id = submission.id
         image_url = challenge.image_url.url
+        print(f'image url: {image_url}')
         # Judge Answer
         code = serializer.data.get("code")
 

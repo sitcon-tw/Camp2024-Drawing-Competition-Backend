@@ -220,7 +220,7 @@ class StatisticAllTeamRoundTotalScoreAPIView(APIView):
                 "round_id_list": [],
                 "total_score_list": [],
             }
-            for round_instance in roundRepository.findAllValidRound():
+            for round_instance in roundRepository.find_all():
                 total_score = 0
                 highest_score = (
                     submissionRepository.getSubmissionHightestScoreByRoundAndTeam(

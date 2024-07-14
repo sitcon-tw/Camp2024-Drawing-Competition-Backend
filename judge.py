@@ -102,12 +102,12 @@ def judge_logic(image_url, result_path, word_count, execution_time):
     print('clip_similarity: ', clip_similarity)
     print('combined_similarity: ', combined_similarity)
     min_word_count = 50
-    max_word_count = 300
+    max_word_count = 600
 
-    word_count_score = 25 * (1 - max(0, linear_normalize(word_count, min_word_count, max_word_count)))
-    word_count_score = max(0, min(25, word_count_score))
+    word_count_score = 20 * (1 - max(0, linear_normalize(word_count, min_word_count, max_word_count)))
+    word_count_score = max(0, min(20, word_count_score))
 
-    similarity_score = 75 * combined_similarity
+    similarity_score = 80 * combined_similarity
     if similarity_score > 30:
         total_score = similarity_score + word_count_score
     else:
