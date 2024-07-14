@@ -220,7 +220,7 @@ class StatisticAllTeamRoundTotalScoreAPIView(APIView):
                 "round_id_list": [],
                 "total_score_list": [],
             }
-            for round_instance in roundRepository.findAllValidRound():
+            for round_instance in roundRepository.find_all():
                 total_score = 0
                 highest_score = (
                     submissionRepository.getSubmissionHightestScoreByRoundAndTeam(
@@ -273,6 +273,7 @@ class StatisticTop3TeamChallengeScore(APIView):
             result["max_score"] = item["max_score"]
             result["fitness"] = item["fitness"]
             result["execute_time"] = item["execute_time"]
+            result["word_count"] = item["word_count"]
 
             response.append(result)
             team_list.append(item["team"])

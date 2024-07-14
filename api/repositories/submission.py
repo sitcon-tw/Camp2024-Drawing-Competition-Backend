@@ -90,7 +90,7 @@ class SubmissionRepository(Repository):
         return (
             submissions.values("team")
             .annotate(max_score=Max("score"))
-            .values("team", "fitness", "execute_time", "max_score")
+            .values("team", "fitness", "execute_time", "max_score","word_count")
             .order_by("-max_score")
         )
 
