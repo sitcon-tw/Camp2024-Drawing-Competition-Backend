@@ -11,6 +11,9 @@ import turtle as turtle
 from PIL import Image
 from sentence_transformers import SentenceTransformer, util
 
+def sigmoid(x, k=0.24):
+    return 100 / (1 + np.exp(-k * (x - 78)))
+
 def get_word_count(file_path):
     with open(file_path, 'r') as file:
         content = file.read()
@@ -40,10 +43,9 @@ def extract_object(image_path):
 
 def calculate_pixel_difference_similarity(image1_path, image2_path):
     # Extract objects from the images
-    # img1 = extract_object(image1_path)
-    # img2 = extract_object(image2_path)
-    img1 = cv2.imread(image1_path)
-    img2 = cv2.imread(image2_path)
+    img1 = extract_object(image1_path)
+    img2 = extract_object(image2_path)
+    
     # Convert images to grayscale
     img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY).astype(np.int16)
     img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY).astype(np.int16)
@@ -57,8 +59,8 @@ def calculate_pixel_difference_similarity(image1_path, image2_path):
 
     valid_pixel = 0
     similar_pixel = 0
-    THRESHOLD = 10
-    # total_pixel = 0
+    THRESHOLD = 20
+
     for i in range(500):
         for j in range(500):
             if mask[i][j] == 0:  # if mask is 0, ignore this pixel
@@ -67,7 +69,7 @@ def calculate_pixel_difference_similarity(image1_path, image2_path):
             if abs(img1[i][j] - img2[i][j]) <= THRESHOLD:
                 similar_pixel += 1
     print('similar_pixel: ', similar_pixel)
-    pixel_similarity = similar_pixel / valid_pixel
+    pixel_similarity = similar_pixel / 500**2
     return pixel_similarity
 
 def calculate_clip_similarity(model, image1_path, image2_path):
@@ -86,9 +88,8 @@ def calculate_clip_similarity(model, image1_path, image2_path):
     return similarity
 def judge_logic(image_url, result_path, word_count, execution_time):
 
-
     pixel_similarity = calculate_pixel_difference_similarity(image_url, result_path)
-    # print('origin pixel_similarity: ', pixel_similarity)
+    print('origin pixel_similarity: ', pixel_similarity)
     pixel_similarity = min(1, linear_normalize(pixel_similarity, 0, 0.025))
     print('Loading CLIP Model...')
     model = SentenceTransformer('clip-ViT-B-32')
@@ -99,7 +100,7 @@ def judge_logic(image_url, result_path, word_count, execution_time):
     # Normalize percentage difference to a similarity score (0 to 1)
     # Combine the similarity scores with equal weight
 
-    combined_similarity = min(1, 0.7 * pixel_similarity + 0.3 * clip_similarity)
+    combined_similarity = 0.7 * pixel_similarity + 0.3 * clip_similarity
     print('pixel_similarity: ', pixel_similarity)
     print('clip_similarity: ', clip_similarity)
     print('combined_similarity: ', combined_similarity)
@@ -107,17 +108,19 @@ def judge_logic(image_url, result_path, word_count, execution_time):
     max_word_count = 300
 
     word_count_score = 25 * (1 - max(0, linear_normalize(word_count, min_word_count, max_word_count)))
-    # word_count_score = max(0, min(25, word_count_score))
+    word_count_score = max(0, min(25, word_count_score))
 
     similarity_score = 75 * combined_similarity
-    if similarity_score > 10:
+    if similarity_score > 30:
         total_score = similarity_score + word_count_score
     else:
         total_score = 0
     # print(f"Percentage Difference: {percentage_diff}%")
-    print(f"Similarity score: {similarity_score}, Word Count score: {word_count_score}\n\n")
-    print(f'total score: {total_score}')
-    return total_score, similarity_score
+    print(f"Similarity score: {combined_similarity}, Word Count score: {word_count_score}\n\n")
+    print(f'Original Total Score: {total_score}')
+    total_score = round(sigmoid(total_score), 2) # limit sigmoid value to 2 decimal places
+    print(f"Adjusted Total Score: {total_score}")
+    return total_score, combined_similarity
 if __name__ == '__main__':
     start_time = time.time()
     ps_file = sys.argv[1]  # Accept output path as a command-line argument
@@ -129,7 +132,6 @@ if __name__ == '__main__':
     start_time = time.time()
     result = subprocess.run(["python3", drawing_path, ps_file], 
                             check=True, capture_output=True, text=True, timeout=30)
-    print('### Subprocess executing finish')
     # Get stdout and stderr
     stdout = result.stdout
     stderr = result.stderr
@@ -140,8 +142,8 @@ if __name__ == '__main__':
         print("Output:", stdout)
 
     end_time = time.time()
-    word_count = get_word_count(code_path)
-    # turtle.done() # Uncomment this lin    e if you want to keep the turtle graphics window open
+    word_count = get_word_count(drawing_path)
+    # turtle.done() # Uncomment this line if you want to keep the turtle graphics window open
     
     execution_time = end_time - start_time
     # check if the PostScript file was created
@@ -154,21 +156,21 @@ if __name__ == '__main__':
             "stdout": stdout,
             "stderr": stderr
         }
+        res = requests.post(
+            f"https://camp.mtkuo.space:2024/api/submission/{submission_id}/",
+            json=post_data)
     else:
         convert_ps_to_png(ps_file, result_path)
-        score, similarity_score = judge_logic(image_url, result_path, 
-                                    word_count, execution_time)
-        similarity_score = (similarity_score * 4) / 3
-        print(f'Weighted similarity score: {similarity_score}')
+        score, similarity = judge_logic(image_url, result_path, word_count, execution_time)
+        similarity = similarity * 100 # convert percentage to score
         post_data = {
             "score": score,
-            "fitness": similarity_score,
+            "fitness": similarity,
             "word_count": word_count,
             "execution_time": execution_time,
             "stdout": stdout,
             "stderr": stderr
         }
-    res = requests.post(
-            f"https://camp.mtkuo.space:2024/api/submission/store/{submission_id}/",
-    json=post_data)
-    
+        res = requests.post(
+            f"https://camp.mtkuo.space:2024/api/submission/{submission_id}/",
+            json=post_data)
