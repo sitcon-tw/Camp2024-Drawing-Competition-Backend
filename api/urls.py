@@ -13,4 +13,6 @@ urlpatterns = [
     path("round/", include("api.controllers.round")),
     # Statistic Routes
     path("statistic/", include("api.controllers.statistic")),
+    # Clip Routes
+    path("clip/", include("api.controllers.clip")),
 ]
