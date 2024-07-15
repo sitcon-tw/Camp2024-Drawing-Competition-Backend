@@ -4,6 +4,7 @@ import os
 import cv2
 import requests
 import subprocess
+import requests
 
 import numpy as np
 import turtle as turtle
@@ -94,9 +95,19 @@ def judge_logic(image_url, result_path, word_count, execution_time):
     # print('origin pixel_similarity: ', pixel_similarity)
     pixel_similarity = min(1, linear_normalize(pixel_similarity, 0, 0.025))
     print('Loading CLIP Model...')
-    model = SentenceTransformer('clip-ViT-B-32')
+    # Load the CLIP model
+    # model = SentenceTransformer('clip-ViT-B-32')
     # Calculate CLIP similarity
-    clip_similarity = calculate_clip_similarity(model, image_url, result_path)
+    # clip_similarity = calculate_clip_similarity(model, image_url, result_path)
+    # end 
+    data = {
+        "image1_path": image_url,
+        "image2_path": result_path
+    }
+    res = requests.post("https://camp.mtkuo.space:2024/api/clip/",json=data)
+    if res.status_code == 200:
+        print("===Similarity request success !===")
+    clip_similarity= int(res.json().get('similarity',"0"))
     print('origin clip_similarity: ', clip_similarity)
     clip_similarity = max(0, linear_normalize(clip_similarity, 0.7, 1))
     # Normalize percentage difference to a similarity score (0 to 1)
