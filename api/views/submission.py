@@ -36,7 +36,7 @@ class StoreAPIView(APIView):
         submission.execute_time = datetime.timedelta(seconds=request.data.get("execution_time"))
         submission.stdout = request.data.get("stdout")
         submission.stderr = request.data.get("stderr")
-        submission.status = "success"
+        submission.status = request.data.get("status")
         submission.draw_image_url = f"/media/result/{submission.id}.png"
         submission.save()
         return Response(SubmissionGeneralSerializer(submission).data, status=status.HTTP_200_OK)

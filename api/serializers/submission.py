@@ -53,3 +53,4 @@ class StoreSerializer(serializers.Serializer):
     execution_time = serializers.IntegerField()
     stdout = serializers.CharField()
     stderr = serializers.CharField()
+    status = serializers.CharField()
