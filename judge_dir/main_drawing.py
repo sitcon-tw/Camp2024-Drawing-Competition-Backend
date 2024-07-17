@@ -141,7 +141,7 @@ def judge_logic(image_url, result_path, word_count, execution_time):
     # print(f"Percentage Difference: {percentage_diff}%")
     print(f"Similarity score: {similarity_score}\n\n")
     print(f'Original total score: {total_score}')
-    # total_score = round(sigmoid(total_score), 2) # limit sigmoid value to 2 decimal places
+    # total_score = round(piecewise_function(total_score), 2) # limit sigmoid value to 2 decimal places
     # print(f'Adjusted total score: {total_score}')
     return total_score, similarity_score
 if __name__ == '__main__':
