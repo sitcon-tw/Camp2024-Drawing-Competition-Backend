@@ -9,7 +9,7 @@ class RoundRepository(Repository):
         print(f"==={datetime.now()} {timezone.localtime()}===")
         print(self.class1.objects.all().first().start_time)
         return self.class1.objects.filter(
-            start_time__gte=timezone.localtime()
+            start_time__lte=timezone.localtime(),end_time__gte=timezone.localtime()
         ).first()
     
     # 檢查是否含有有效的 Round

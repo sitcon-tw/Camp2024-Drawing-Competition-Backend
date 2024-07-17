@@ -19,7 +19,10 @@ def piecewise_function(x, k=0.24):
     linear_part = slope * x
     
     # Combine the two parts using numpy's where function
-    return np.where(x > 80, sigmoid_part, linear_part)
+    if x > 80:
+        return sigmoid_part
+    else:
+        return linear_part
 
 def get_word_count(file_path):
     with open(file_path, 'r') as file:
