@@ -28,6 +28,8 @@ class Clip:
         # Normalize similarity score to a range of 0 to 1
         similarity = self.linear_normalize(similarity, 0, 1)
 
+        del encoded_images
+
         return similarity
     
 if __name__ == "__main__":
