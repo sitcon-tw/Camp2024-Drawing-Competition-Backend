@@ -17,12 +17,12 @@ class ClipAPIView(APIView):
     def post(self,request):
         image1_path = request.data.get("image1_path")
         image2_path = request.data.get("image2_path")
-        # clip_instance = Clip().get_instance()
-        clip_instance = SSIM.get_instance()
+        clip_instance = Clip.get_instance()
+        # clip_instance = SSIM.get_instance()
 
-        # similarity =clip_instance.calculate_clip_similarity(image1_path, image2_path)
-        similarity =clip_instance.calculate_similarity(image1_path, image2_path)
-
+        similarity = clip_instance.calculate_clip_similarity(image1_path, image2_path)
+        # similarity =clip_instance.calculate_similarity(image1_path, image2_path)
+        
         return Response({
             "similarity": similarity
         }, status=status.HTTP_200_OK)

@@ -12,6 +12,7 @@ class Clip:
         if Clip._instance is None:
             Clip._instance = Clip()
         return Clip._instance
+    
     def linear_normalize(self,value, min_value, max_value):
         return (value - min_value) / (max_value - min_value)
 
@@ -24,11 +25,10 @@ class Clip:
 
         # Compute cosine similarity
         similarity = util.cos_sim(encoded_images[0], encoded_images[1]).item()
-
+        print(f'############### Similarity: {similarity}')
         # Normalize similarity score to a range of 0 to 1
-        similarity = self.linear_normalize(similarity, 0, 1)
+        # similarity = self.linear_normalize(similarity, -1, 1)
 
-        del encoded_images
 
         return similarity
     

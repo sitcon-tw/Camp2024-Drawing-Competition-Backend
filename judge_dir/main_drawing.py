@@ -93,10 +93,11 @@ def calculate_clip_similarity(model, image1_path, image2_path):
     encoded_images = model.encode([original_image, drawn_image], batch_size=2, convert_to_tensor=True)
 
     # Compute cosine similarity
+    # similarity = model.similarity(encoded_images[0], encoded_images[1])
     similarity = util.cos_sim(encoded_images[0], encoded_images[1]).item()
-
-    # Normalize similarity score to a range of 0 to 1
-    similarity = linear_normalize(similarity, 0, 1)
+    print(f'############### Similarity: {similarity}')
+    # Normalize similarity score to a range of -1 to 1
+    # similarity = linear_normalize(similarity, -1, 1)
 
     return similarity
 
@@ -104,36 +105,37 @@ def calculate_clip_similarity(model, image1_path, image2_path):
 def judge_logic(image_url, result_path, word_count, execution_time):
 
 
-    # pixel_similarity = calculate_pixel_difference_similarity(image_url, result_path)
-    # # print('origin pixel_similarity: ', pixel_similarity)
-    # pixel_similarity = min(1, linear_normalize(pixel_similarity, 0, 0.025))
-    
     pixel_similarity = calculate_pixel_difference_similarity(image_url, result_path)
-
+    print('origin pixel_similarity: ', pixel_similarity)
+    pixel_similarity = min(1, linear_normalize(pixel_similarity, 0, 0.025))
+    product = 1.1
     data = {
         "image1_path": image_url,
         "image2_path": result_path
     }
     res = requests.post("https://camp.mtkuo.space:2024/api/clip/",json=data)
+    # print(f'res: {res.json()}')
     if res.status_code == 200:
         print("===Similarity request success !===")
-    clip_similarity= int(res.json().get('similarity',"0"))
+    clip_similarity= float(res.json()["similarity"])
+    # model = SentenceTransformer('clip-ViT-B-32')
+    # clip_similarity = calculate_clip_similarity(model, image_url, result_path)
     print('origin clip_similarity: ', clip_similarity)
     clip_similarity = max(0, linear_normalize(clip_similarity, 0.7, 1))
     # Normalize percentage difference to a similarity score (0 to 1)
     # Combine the similarity scores with equal weight
 
-    combined_similarity = min(1, 0.7 * pixel_similarity + 0.3 * clip_similarity)
-    print('pixel_similarity: ', pixel_similarity)
+    # combined_similarity = min(1, 0.7 * pixel_similarity + 0.3 * clip_similarity)
+    # print('pixel_similarity: ', pixel_similarity)
     print('clip_similarity: ', clip_similarity)
-    print('combined_similarity: ', combined_similarity)
+    # print('combined_similarity: ', combined_similarity)
     min_word_count = 50
     max_word_count = 300
 
     # word_count_score = 25 * (1 - max(0, linear_normalize(word_count, min_word_count, max_word_count)))
     # word_count_score = max(0, min(25, word_count_score))
-
-    similarity_score = 100 * combined_similarity
+    
+    similarity_score = min(100 * clip_similarity * product, 100)
     if similarity_score > 10:
         total_score = similarity_score
     else:
@@ -184,7 +186,7 @@ if __name__ == '__main__':
         convert_ps_to_png(ps_file, result_path)
         score, similarity_score = judge_logic(image_url, result_path, 
                                     word_count, execution_time)
-        similarity_score = (similarity_score * 4) / 3
+        # similarity_score = (similarity_score * 4) / 3
         print(f'Weighted similarity score: {similarity_score}')
         post_data = {
             "score": score,
