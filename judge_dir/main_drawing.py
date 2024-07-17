@@ -52,13 +52,12 @@ def calculate_pixel_difference_similarity(image1_path, image2_path):
     # Convert images to grayscale
     img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY).astype(np.int16)
     img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY).astype(np.int16)
-    # score, diff = structural_similarity(img1, img2, full=True)
     # Ensure the images have the same size for comparison
     img1 = cv2.resize(img1, (500, 500))
     img2 = cv2.resize(img2, (500, 500))
 
     # Create a mask to ignore white pixels (value 255)
-    mask = (img2 != 255).astype(np.uint8)  # create mask with 0 where img2 is 255, and 1 otherwise
+    mask = (img2 == 255).astype(np.uint8)  # create mask with 1 where img2 is white(255), and 0 otherwise
 
     valid_pixel = 0
     similar_pixel = 0
@@ -66,7 +65,7 @@ def calculate_pixel_difference_similarity(image1_path, image2_path):
     # total_pixel = 0
     for i in range(500):
         for j in range(500):
-            if mask[i][j] == 0:  # if mask is 0, ignore this pixel
+            if mask[i][j] == 1:  # if mask is 1, ignore this pixel
                 continue
             valid_pixel += 1
             if abs(img1[i][j] - img2[i][j]) <= THRESHOLD:
@@ -89,18 +88,17 @@ def calculate_clip_similarity(model, image1_path, image2_path):
     similarity = linear_normalize(similarity, 0, 1)
 
     return similarity
+
+
 def judge_logic(image_url, result_path, word_count, execution_time):
 
 
+    # pixel_similarity = calculate_pixel_difference_similarity(image_url, result_path)
+    # # print('origin pixel_similarity: ', pixel_similarity)
+    # pixel_similarity = min(1, linear_normalize(pixel_similarity, 0, 0.025))
+    
     pixel_similarity = calculate_pixel_difference_similarity(image_url, result_path)
-    # print('origin pixel_similarity: ', pixel_similarity)
-    pixel_similarity = min(1, linear_normalize(pixel_similarity, 0, 0.025))
-    # print('Loading CLIP Model...')
-    # Load the CLIP model
-    # model = SentenceTransformer('clip-ViT-B-32')
-    # Calculate CLIP similarity
-    # clip_similarity = calculate_clip_similarity(model, image_url, result_path)
-    # end 
+
     data = {
         "image1_path": image_url,
         "image2_path": result_path
