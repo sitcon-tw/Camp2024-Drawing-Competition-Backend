@@ -4,11 +4,14 @@ import os
 import cv2
 import requests
 import subprocess
+import requests
 
 import numpy as np
 import turtle as turtle
 
 from PIL import Image
+from sentence_transformers import util
+from skimage.metrics import structural_similarity
 from sentence_transformers import SentenceTransformer, util
 
 def piecewise_function(x, k=0.24):
@@ -60,13 +63,12 @@ def calculate_pixel_difference_similarity(image1_path, image2_path):
     # Convert images to grayscale
     img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY).astype(np.int16)
     img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY).astype(np.int16)
-
     # Ensure the images have the same size for comparison
     img1 = cv2.resize(img1, (500, 500))
     img2 = cv2.resize(img2, (500, 500))
 
     # Create a mask to ignore white pixels (value 255)
-    mask = (img2 != 255).astype(np.uint8)  # create mask with 0 where img2 is 255, and 1 otherwise
+    mask = (img2 == 255).astype(np.uint8)  # create mask with 1 where img2 is white(255), and 0 otherwise
 
     valid_pixel = 0
     similar_pixel = 0
@@ -74,7 +76,7 @@ def calculate_pixel_difference_similarity(image1_path, image2_path):
     # total_pixel = 0
     for i in range(500):
         for j in range(500):
-            if mask[i][j] == 0:  # if mask is 0, ignore this pixel
+            if mask[i][j] == 1:  # if mask is 1, ignore this pixel
                 continue
             valid_pixel += 1
             if abs(img1[i][j] - img2[i][j]) <= THRESHOLD:
@@ -97,16 +99,25 @@ def calculate_clip_similarity(model, image1_path, image2_path):
     similarity = linear_normalize(similarity, 0, 1)
 
     return similarity
+
+
 def judge_logic(image_url, result_path, word_count, execution_time):
 
 
+    # pixel_similarity = calculate_pixel_difference_similarity(image_url, result_path)
+    # # print('origin pixel_similarity: ', pixel_similarity)
+    # pixel_similarity = min(1, linear_normalize(pixel_similarity, 0, 0.025))
+    
     pixel_similarity = calculate_pixel_difference_similarity(image_url, result_path)
-    # print('origin pixel_similarity: ', pixel_similarity)
-    pixel_similarity = min(1, linear_normalize(pixel_similarity, 0, 0.025))
-    print('Loading CLIP Model...')
-    model = SentenceTransformer('clip-ViT-B-32')
-    # Calculate CLIP similarity
-    clip_similarity = calculate_clip_similarity(model, image_url, result_path)
+
+    data = {
+        "image1_path": image_url,
+        "image2_path": result_path
+    }
+    res = requests.post("https://camp.mtkuo.space:2024/api/clip/",json=data)
+    if res.status_code == 200:
+        print("===Similarity request success !===")
+    clip_similarity= int(res.json().get('similarity',"0"))
     print('origin clip_similarity: ', clip_similarity)
     clip_similarity = max(0, linear_normalize(clip_similarity, 0.7, 1))
     # Normalize percentage difference to a similarity score (0 to 1)
@@ -119,21 +130,20 @@ def judge_logic(image_url, result_path, word_count, execution_time):
     min_word_count = 50
     max_word_count = 300
 
-    word_count_score = 25 * (1 - max(0, linear_normalize(word_count, min_word_count, max_word_count)))
+    # word_count_score = 25 * (1 - max(0, linear_normalize(word_count, min_word_count, max_word_count)))
     # word_count_score = max(0, min(25, word_count_score))
 
-    similarity_score = 75 * combined_similarity
+    similarity_score = 100 * combined_similarity
     if similarity_score > 10:
-        total_score = similarity_score + word_count_score
+        total_score = similarity_score
     else:
         total_score = 0
     # print(f"Percentage Difference: {percentage_diff}%")
-    print(f"Similarity score: {similarity_score}, Word Count score: {word_count_score}\n\n")
+    print(f"Similarity score: {similarity_score}\n\n")
     print(f'Original total score: {total_score}')
-    total_score = round(piecewise_function(total_score), 2) # limit sigmoid value to 2 decimal places
-    print(f'Adjusted total score: {total_score}')
+    # total_score = round(sigmoid(total_score), 2) # limit sigmoid value to 2 decimal places
+    # print(f'Adjusted total score: {total_score}')
     return total_score, similarity_score
-
 if __name__ == '__main__':
     start_time = time.time()
     ps_file = sys.argv[1]  # Accept output path as a command-line argument
