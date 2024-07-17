@@ -12,9 +12,20 @@ import turtle as turtle
 from PIL import Image
 from sentence_transformers import util
 from skimage.metrics import structural_similarity
+from sentence_transformers import SentenceTransformer, util
 
-def sigmoid(x, k=0.24):
-    return 100 / (1 + np.exp(-k * (x - 78)))
+def piecewise_function(x, k=0.24):
+    # Apply the sigmoid function for x > 80
+    sigmoid_part = 100 / (1 + np.exp(-k * (x - 78)))
+    # Apply the linear function for x <= 80
+    slope = (100 / (1 + np.exp(-k * (80 - 78)))) / 80
+    linear_part = slope * x
+    
+    # Combine the two parts using numpy's where function
+    if x > 80:
+        return sigmoid_part
+    else:
+        return linear_part
 
 def get_word_count(file_path):
     with open(file_path, 'r') as file:
