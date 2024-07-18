@@ -1,8 +1,41 @@
-import turtle as turtle
+import turtle
 import sys
-import time
+
+# Used to block certain modules
+import types
+from unittest.mock import patch
+
+# Blocked modules
 import os
-import requests
+import subprocess
+import sys
+import shutil
+import pathlib
+import tempfile
+import psutil
+
+blocked_modules = [
+    os,
+    subprocess,
+    sys,
+    shutil,
+    pathlib,
+    tempfile,
+    psutil,
+]
+
+
+def open(*args, **kwargs):
+    raise NotImplementedError("open() is blocked")
+
+
+def exec(*args, **kwargs):
+    raise NotImplementedError("exec() is blocked")
+
+
+def eval(*args, **kwargs):
+    raise NotImplementedError("eval() is blocked")
+
 
 """
 #################
@@ -17,10 +50,29 @@ so we commented it
 #################
 """
 
-if __name__ == '__main__':
-    start_time = time.time()
-    ps_file = sys.argv[1]  # Accept output path as a command-line argument
-    print(f'ps file: {ps_file}')
+if __name__ == "__main__":
+
+    def overwrite_module_fns(module):
+        def nothing(*args, **kwargs):
+            pass
+
+        for name in dir(module):
+            if not name.startswith("__"):  # Skip special attributes/methods
+                attr = getattr(module, name)
+                if isinstance(attr, types.FunctionType):
+                    setattr(module, name, nothing)
+                elif isinstance(attr, types.BuiltinFunctionType):
+                    patched_func = nothing
+                    patch(f"{module.__name__}.{name}", new=patched_func).start()
+
+    # Block students from executing any system code
+    for module in blocked_modules:
+        overwrite_module_fns(module)
+
+    raise NotImplementedError("ps_file not updated!")
+
+    # ps_file = sys.argv[1]  # Accept output path as a command-line argument
+    # print(f'ps file: {ps_file}')
     s = turtle.getscreen()
     pen = turtle.Turtle()
 

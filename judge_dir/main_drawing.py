@@ -7,12 +7,9 @@ import subprocess
 import requests
 
 import numpy as np
-import turtle as turtle
 
 from PIL import Image
 from sentence_transformers import util
-from skimage.metrics import structural_similarity
-from sentence_transformers import SentenceTransformer, util
 
 def piecewise_function(x, k=0.24):
     # Apply the sigmoid function for x > 80
@@ -129,8 +126,6 @@ def judge_logic(image_url, result_path, word_count, execution_time):
     # print('pixel_similarity: ', pixel_similarity)
     print('clip_similarity: ', clip_similarity)
     # print('combined_similarity: ', combined_similarity)
-    min_word_count = 50
-    max_word_count = 300
 
     # word_count_score = 25 * (1 - max(0, linear_normalize(word_count, min_word_count, max_word_count)))
     # word_count_score = max(0, min(25, word_count_score))
@@ -180,7 +175,8 @@ if __name__ == '__main__':
             "word_count": word_count,
             "execution_time": execution_time,
             "stdout": stdout,
-            "stderr": stderr
+            "stderr": stderr,
+            "status": "success"
         }
     else:
         convert_ps_to_png(ps_file, result_path)
