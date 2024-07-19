@@ -5,6 +5,7 @@ import cv2
 import requests
 import subprocess
 import requests
+import shutil
 
 import numpy as np
 
@@ -151,21 +152,25 @@ def judge_logic(image_url, result_path, word_count, execution_time):
 
 if __name__ == "__main__":
     start_time = time.time()
-    ps_file = sys.argv[1]  # Accept output path as a command-line argument
-    submission_id = sys.argv[2]
-    code_path = sys.argv[3]
-    drawing_path = sys.argv[4]
-    result_path = sys.argv[5]
-    image_url = sys.argv[6]
+    # ps_file = sys.argv[1]  # Accept output path as a command-line argument
+    submission_id = sys.argv[1]
+    code_path = sys.argv[2]
+    drawing_path = sys.argv[3]
+    result_path = sys.argv[4]
+    image_url = sys.argv[5]
+    ps_src = sys.argv[6]
+    ps_dest = sys.argv[7]
     start_time = time.time()
     try:
+        print('##%%$$ Runing code template')
         result = subprocess.run(
-            ["python3", drawing_path, ps_file],
+            ["python3", drawing_path],
             check=True,
             capture_output=True,
             text=True,
             timeout=30,
         )
+        
     except subprocess.CalledProcessError as e:
         error_data = {
             "score": 0,
@@ -173,7 +178,7 @@ if __name__ == "__main__":
             "word_count": 0,
             "execution_time": 0,
             "stdout": "",
-            "stderr": "Process crashed with the following error message :\n\n" + e,
+            "stderr": "Process crashed with the following error message :\n\n" + str(e),
             "status": "fail",
         }
         res = requests.post(
@@ -182,6 +187,27 @@ if __name__ == "__main__":
         )
 
         print(f"Error: {e}")
+        # print(f'OUTPUT: {result.stdout}')
+        # print(f'ERROR: {result.stderr}')
+        exit()
+    except subprocess.TimeoutExpired as e:
+        error_data = {
+            "score": 0,
+            "fitness": 0,
+            "word_count": 0,
+            "execution_time": 0,
+            "stdout": "",
+            "stderr": "Time Limit Exceeded",
+            "status": "fail",
+        }
+        res = requests.post(
+            f"https://camp.mtkuo.space:2024/api/submission/store/{submission_id}/",
+            json=error_data,
+        )
+
+        print(f"Error: {e}")
+        exit()
+
     print("### Subprocess executing finish")
     # Get stdout and stderr
     stdout = result.stdout
@@ -197,8 +223,9 @@ if __name__ == "__main__":
     # turtle.done() # Uncomment this lin    e if you want to keep the turtle graphics window open
 
     execution_time = end_time - start_time
+    shutil.copy(ps_src, ps_dest)
     # check if the PostScript file was created
-    if not os.path.exists(ps_file):
+    if not os.path.exists(ps_dest):
         post_data = {
             "score": 0,
             "fitness": 0,
@@ -209,7 +236,7 @@ if __name__ == "__main__":
             "status": "success",
         }
     else:
-        convert_ps_to_png(ps_file, result_path)
+        convert_ps_to_png(ps_dest, result_path)
         score, similarity_score = judge_logic(
             image_url, result_path, word_count, execution_time
         )
@@ -222,6 +249,7 @@ if __name__ == "__main__":
             "execution_time": execution_time,
             "stdout": stdout,
             "stderr": stderr,
+            "status": "success",
         }
     res = requests.post(
         f"https://camp.mtkuo.space:2024/api/submission/store/{submission_id}/",

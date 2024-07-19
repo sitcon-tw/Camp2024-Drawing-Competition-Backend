@@ -86,9 +86,12 @@ class SubmissionAPIView(APIView):
 
         drawing_template_path = f"judge_dir/drawing_code_template.py"
         main_drawing_path = f"judge_dir/main_drawing.py"
-        template_revise_path = f"media/code/drawing_{submission_id}.py"
+        drawing_dest_path = f'media/code/{submission_id}/main_drawing.py'
+        template_revise_path = f"media/code/{submission_id}/drawing_{submission_id}.py"
         
-        code_path = f"media/code/submission_{submission_id}.py"
+        os.makedirs(os.path.dirname(drawing_dest_path), exist_ok=True)
+        
+        code_path = f"media/code/{submission_id}/submission_{submission_id}.py"
         if os.path.isfile(code_path):
             # Remove the file
             os.remove(code_path)
@@ -106,7 +109,8 @@ class SubmissionAPIView(APIView):
         judge_submission(
             code_path, image_url, result_path, team_id, 
             drawing_template_path, main_drawing_path, 
-            template_revise_path, submission_id)
+            template_revise_path, submission_id,
+            drawing_dest_path)
         # Complete Judge
         # print(f'score: {score}, similarity: {similarity}, word_count: {word_count}, execution_time: {execution_time}\n\n')
         response = SubmissonSubmitResponseSeriallizer()

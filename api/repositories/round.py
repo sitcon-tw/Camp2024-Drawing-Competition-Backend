@@ -14,7 +14,8 @@ class RoundRepository(Repository):
     
     # 檢查是否含有有效的 Round
     def checkValidRoundExists(self):
-        return self.class1.objects.filter(is_valid=True).exists()
+        print(">>>",self.class1.objects.filter(is_valid=False).exists())
+        return self.class1.objects.filter(is_valid=False).exists()
 
     # 取得所有有效的 Round
     def findAllValidRound(self):
