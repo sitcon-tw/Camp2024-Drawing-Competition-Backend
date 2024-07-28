@@ -195,7 +195,8 @@ class StatisticAllTeamSingleRoundTotalScoreAPIView(APIView):
                         d["score_list"].append(0)
                 d["total_score"] = total_score
                 data.append(d)
-
+            # 取得前三名資料
+            data = sorted(data, key=lambda x: x["total_score"], reverse=True)[:3]
             return Response(data, status=status.HTTP_200_OK)
         except Round.DoesNotExist:
             return Response(
